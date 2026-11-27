@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { FinanceContext, type FinanceContextValue } from '../../app/finance-context'
 import type { FinanceDatabase } from '../../data/finance-database'
 import { SettingsPage } from './SettingsPage'
@@ -25,8 +25,10 @@ const finance: FinanceContextValue = {
   clearNotice: noop,
 }
 
+const onSignOut = vi.fn()
+
 function renderSettings() {
-  return render(<FinanceContext.Provider value={finance}><SettingsPage fullName="Alex Jose" email="me@example.com" onSaveName={async () => null} onAccountDeleted={async () => null} /></FinanceContext.Provider>)
+  return render(<FinanceContext.Provider value={finance}><SettingsPage fullName="Alex Jose" email="me@example.com" onSaveName={async () => null} onSignOut={onSignOut} onAccountDeleted={async () => null} /></FinanceContext.Provider>)
 }
 
 describe('SettingsPage', () => {
@@ -44,5 +46,7 @@ describe('SettingsPage', () => {
     await userEvent.click(screen.getByRole('tab', { name: 'Account' }))
     expect(screen.getByRole('button', { name: 'Delete my account' })).toBeTruthy()
     expect((screen.getByLabelText('Full name') as HTMLInputElement).value).toBe('Alex Jose')
+    await userEvent.click(screen.getByRole('button', { name: 'Sign out' }))
+    expect(onSignOut).toHaveBeenCalledOnce()
   })
 })

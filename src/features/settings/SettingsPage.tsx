@@ -3,6 +3,7 @@ import { BackupPage } from '../backup/BackupPage'
 import { CategoriesPage } from '../categories/CategoriesPage'
 import { DeleteAccountPanel } from './DeleteAccountPanel'
 import { ProfilePanel } from './ProfilePanel'
+import { SignOutPanel } from './SignOutPanel'
 
 const tabs = [
   { id: 'categories', label: 'Categories' },
@@ -12,11 +13,12 @@ const tabs = [
 
 type TabId = typeof tabs[number]['id']
 
-export function SettingsPage({ fullName, email, onSaveName, onAccountDeleted }: {
+export function SettingsPage({ fullName, email, onSaveName, onSignOut, onAccountDeleted }: {
   fullName: string
   email: string | undefined
   /** Saves the full name; resolves to the error, if any. */
   onSaveName: (name: string) => Promise<Error | null>
+  onSignOut: () => void
   /** Ends the session after the account has been deleted. */
   onAccountDeleted: () => Promise<Error | null>
 }) {
@@ -38,6 +40,7 @@ export function SettingsPage({ fullName, email, onSaveName, onAccountDeleted }: 
         {tab === 'account' && (
           <>
             <ProfilePanel fullName={fullName} email={email} onSave={onSaveName} />
+            <SignOutPanel onSignOut={onSignOut} />
             <DeleteAccountPanel onShowBackup={() => setTab('backups')} onDeleted={onAccountDeleted} />
           </>
         )}

@@ -61,6 +61,12 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }:
           ))}
         </nav>
         <div className="sidebar-bottom">
+          {/* Hidden by CSS in the installed app and on phones, where Sign out lives in Settings -> Account. */}
+          <div className="sidebar-user">
+            <span className="sidebar-avatar" aria-hidden="true">{userName.charAt(0).toUpperCase()}</span>
+            <span className="sidebar-user-text"><b>{userName}</b>{email && email !== userName && <small>{email}</small>}</span>
+            <button type="button" className="button button-secondary sidebar-signout" onClick={() => void signOut()}><LogOut size={15} /> Sign out</button>
+          </div>
           <div className="privacy-badge"><LockKeyhole size={16} /><span><b>Private by design</b><small>Protected by your account</small></span></div>
           <p className="sidebar-foot">Cloud-backed · INR only</p>
         </div>
@@ -71,8 +77,6 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }:
           <div className="mobile-brand"><span className="brand-mark"><Logo /></span> Ledgerly</div>
           <div className="breadcrumb">Finance <ChevronRight size={14} /> <strong>{activeSection?.label}</strong></div>
           <div className="topbar-right">
-            <span className="local-status" title={email}><span /> {userName}</span>
-            <button className="button button-secondary button-signout" onClick={() => void signOut()} aria-label="Sign out"><LogOut size={16} /><span>Sign out</span></button>
             <button className="button button-primary top-add" onClick={() => { setSection('transactions'); setTransactionForm(null) }}><Plus size={16} /> Add transaction</button>
           </div>
         </header>
@@ -84,7 +88,7 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }:
           {section === 'reports' && <ReportsPage report={report} onEditTransaction={(item) => { setSection('transactions'); setTransactionForm(item) }} />}
           {section === 'accounts' && <AccountsPage />}
           {section === 'deposits' && <DepositsPage />}
-          {section === 'settings' && <SettingsPage fullName={fullName} email={email} onSaveName={onUpdateName} onAccountDeleted={() => onSignOut({ local: true })} />}
+          {section === 'settings' && <SettingsPage fullName={fullName} email={email} onSaveName={onUpdateName} onSignOut={() => void signOut()} onAccountDeleted={() => onSignOut({ local: true })} />}
         </main>
         <footer className="app-footer"><span>Ledgerly · Personal Finance Tracker · <span title="Release and commit this build was made from">{appVersion}</span></span><span><LockKeyhole size={13} /> Stored in your private account</span></footer>
       </div>
