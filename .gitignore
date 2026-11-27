@@ -1,0 +1,14 @@
+# Personal financial records and encrypted backups
+/data/
+/backups/
+*.sqlite
+*.sqlite3
+*.db
+*.db-*
+*.bak
+*.backup
+
+# Local secrets and environment configuration
+.env
+.env.*
+!.env.example
