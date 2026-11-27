@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { Wallet } from 'lucide-react'
+import { Logo } from '../../components/Logo'
 
 export function AuthScreen({
   client,
@@ -73,7 +73,7 @@ export function AuthScreen({
   return (
     <main className="auth-screen">
       <section className="auth-card">
-        <div className="loading-mark"><Wallet size={28} /></div>
+        <div className="loading-mark"><Logo /></div>
         <p className="eyebrow">PRIVATE FINANCE TRACKER</p>
         <h1>{client ? 'Sign in to Ledgerly' : 'Set up Ledgerly'}</h1>
         <p className="auth-description">
