@@ -15,13 +15,11 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false # install scripts must not get a write-capable git token
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -29,8 +27,13 @@ jobs:
           node-version: 22
           cache: npm
 
+      # The Vercel token is scoped to the steps that need it, not the whole job, so npm install scripts never see it.
       - name: Check Vercel configuration
         shell: bash
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
         run: |
           if [[ -z "$VERCEL_TOKEN" || -z "$VERCEL_ORG_ID" || -z "$VERCEL_PROJECT_ID" ]]; then
             echo "::error::Add VERCEL_TOKEN as a GitHub Actions repository secret and VERCEL_ORG_ID and VERCEL_PROJECT_ID as repository variables."
@@ -47,11 +50,15 @@ jobs:
         run: npm test
 
       - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+        run: npm install --global vercel@67
 
       # Build on Vercel, not here: `vercel pull` cannot read Sensitive env vars (SB_URL, SB_ANON_KEY)
       # and would bake "[SENSITIVE]" placeholders into the bundle.
       - name: Deploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
         run: vercel deploy --prod --token="$VERCEL_TOKEN"
 
       - name: Create release tag
