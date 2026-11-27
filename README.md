@@ -27,6 +27,18 @@ The client sends only changed rows to a transactional Supabase function. A per-u
 
 If PostgREST reports `PGRST002` or `pg_pgrst_no_exposed_schemas`, check that `public` is included in Exposed schemas, then run `NOTIFY pgrst, 'reload schema';` in SQL Editor and reload Ledgerly.
 
+## Google sign-in
+
+Email/password sign-in remains available. To enable **Continue with Google**:
+
+1. In [Google Auth Platform](https://console.cloud.google.com/auth/overview), select or create a Google Cloud project and configure branding and audience. If the app is in testing mode, add your Google account as a test user. Under Data Access, configure the `openid`, `email`, and `profile` scopes.
+2. Create an OAuth client of type **Web application**. Add the app origins (for example, `http://localhost:5173` and your deployed Vercel origin) under Authorized JavaScript origins. Under Authorized redirect URIs, add the callback URL shown on the Google provider page in Supabase, typically `https://<project-ref>.supabase.co/auth/v1/callback`.
+3. In Supabase Authentication → Sign In / Providers → Google, enable Google and enter the Google OAuth client ID and client secret. Keep the client secret in Supabase; do not put it in the app, GitHub Actions, or Vercel environment variables.
+4. In Supabase Authentication → URL Configuration, add the app's local and deployed URLs (for example, `http://localhost:5173/` and `https://your-app.vercel.app/`) to the redirect allow list. Set the Site URL as appropriate for the deployed app.
+5. Restart the app if necessary and try **Continue with Google**. Supabase automatically links identities with the same verified email address; a different email creates a separate account with separate finance records.
+
+See the [Supabase Google sign-in guide](https://supabase.com/docs/guides/auth/social-sign-in/auth-google) for the current provider setup.
+
 ## Deploy to Vercel with GitHub Actions
 
 1. Create a Vercel project for this repository. Link the project locally with the Vercel CLI (`vercel link`) to find its `orgId` and `projectId` in `.vercel/project.json`; `.vercel/` is ignored by Git.

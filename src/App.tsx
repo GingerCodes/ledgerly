@@ -115,10 +115,12 @@ function AuthScreen({
   client,
   configurationError,
   externalError,
+  clearExternalError,
 }: {
   client: SupabaseClient | null
   configurationError: string
   externalError: string
+  clearExternalError: () => void
 }) {
   const [creatingAccount, setCreatingAccount] = useState(false)
   const [email, setEmail] = useState('')
@@ -131,6 +133,7 @@ function AuthScreen({
     event.preventDefault()
     if (!client) return
     setBusy(true)
+    clearExternalError()
     setError('')
     setSuccess('')
     try {
@@ -152,6 +155,25 @@ function AuthScreen({
       }
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Authentication failed.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function signInWithGoogle() {
+    if (!client) return
+    setBusy(true)
+    clearExternalError()
+    setError('')
+    setSuccess('')
+    try {
+      const { error: signInError } = await client.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/` },
+      })
+      if (signInError) throw signInError
+    } catch (signInError) {
+      setError(signInError instanceof Error ? signInError.message : 'Google sign-in failed.')
     } finally {
       setBusy(false)
     }
@@ -185,7 +207,10 @@ function AuthScreen({
             <button className="button button-primary" type="submit" disabled={busy}>
               {busy ? 'Please wait…' : creatingAccount ? 'Create account' : 'Sign in'}
             </button>
-            <button className="auth-switch" type="button" onClick={() => { setCreatingAccount(!creatingAccount); setError(''); setSuccess('') }}>
+            <button className="button button-secondary" type="button" disabled={busy} onClick={() => void signInWithGoogle()}>
+              Continue with Google
+            </button>
+            <button className="auth-switch" type="button" disabled={busy} onClick={() => { setCreatingAccount(!creatingAccount); clearExternalError(); setError(''); setSuccess('') }}>
               {creatingAccount ? 'Already have an account? Sign in' : 'New to Ledgerly? Create an account'}
             </button>
           </form>
@@ -600,19 +625,24 @@ function App() {
     if (!supabase) return
 
     let active = true
-    supabase.auth.getSession().then(({ data, error }) => {
+    supabase.auth.initialize().then(async ({ error: initializationError }) => {
+      const { data, error } = await supabase.auth.getSession()
       if (!active) return
-      if (error) {
-        setAuthStateError(error.message)
+      if (initializationError || error) {
+        setAuthStateError((initializationError || error)?.message ?? 'Authentication failed.')
       } else {
         setSession(data.session)
       }
+      setAuthReady(true)
+    }).catch((error: unknown) => {
+      if (!active) return
+      setAuthStateError(error instanceof Error ? error.message : 'Authentication failed.')
       setAuthReady(true)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
       setSession(nextSession)
       setAuthReady(true)
-      setAuthStateError('')
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') setAuthStateError('')
       setLoadingError('')
       if (event === 'SIGNED_OUT' && databaseRef.current) {
         void databaseRef.current.close()
@@ -703,6 +733,7 @@ function App() {
         client={supabase}
         configurationError={supabaseSetup.error}
         externalError={authStateError}
+        clearExternalError={() => setAuthStateError('')}
       />
     )
   }
