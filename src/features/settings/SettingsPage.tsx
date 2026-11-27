@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { BackupPage } from '../backup/BackupPage'
 import { CategoriesPage } from '../categories/CategoriesPage'
+import { trackPageView } from '../../lib/analytics'
+import { AnalyticsPanel } from './AnalyticsPanel'
 import { DeleteAccountPanel } from './DeleteAccountPanel'
 import { ProfilePanel } from './ProfilePanel'
 import { SignOutPanel } from './SignOutPanel'
@@ -23,6 +25,9 @@ export function SettingsPage({ fullName, email, onSaveName, onSignOut, onAccount
   onAccountDeleted: () => Promise<Error | null>
 }) {
   const [tab, setTab] = useState<TabId>('categories')
+  useEffect(() => {
+    trackPageView(`/settings/${tab}`, `Settings · ${tabs.find((item) => item.id === tab)?.label}`)
+  }, [tab])
 
   return (
     <>
@@ -41,6 +46,7 @@ export function SettingsPage({ fullName, email, onSaveName, onSignOut, onAccount
           <>
             <ProfilePanel fullName={fullName} email={email} onSave={onSaveName} />
             <SignOutPanel onSignOut={onSignOut} />
+            <AnalyticsPanel />
             <DeleteAccountPanel onShowBackup={() => setTab('backups')} onDeleted={onAccountDeleted} />
           </>
         )}

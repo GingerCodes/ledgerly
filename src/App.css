@@ -864,3 +864,6 @@ input[list]::-webkit-calendar-picker-indicator { display: none !important; }
 .networth-area { fill: rgba(36, 92, 72, .12); }
 .networth-line { fill: none; stroke: #245c48; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
 .networth-dot { fill: #fff; stroke: #245c48; stroke-width: 2; }
+
+.check-row { display: flex !important; align-items: center; gap: 10px !important; }
+.check-row input { width: 20px !important; min-height: 20px !important; margin: 0; accent-color: #245c48; }

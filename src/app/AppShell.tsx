@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ChevronRight, LockKeyhole, LogOut, Plus } from 'lucide-react'
 import { type Transaction, type TransactionInput } from '../domain/models'
 import { Logo } from '../components/Logo'
@@ -12,6 +12,7 @@ import { SettingsPage } from '../features/settings/SettingsPage'
 import { TransactionForm } from '../features/transactions/TransactionForm'
 import { TransactionsPage } from '../features/transactions/TransactionsPage'
 import { currentPeriodYear, loadPeriodMode, makePeriod, savePeriodMode, type PeriodMode } from '../lib/period'
+import { trackPageView } from '../lib/analytics'
 import { appVersion } from '../lib/version'
 import { useFinance, useFinanceQuery } from './finance-context'
 import { sections, type Section } from './navigation'
@@ -36,6 +37,11 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }:
   const report = useExpenseReport(mode)
   const overviewTransactions = useFinanceQuery((db) => db.getTransactions(period.startDate, period.endDate), [period.startDate, period.endDate])
   const activeSection = sections.find((item) => item.id === section)
+
+  // Settings reports its own tabs (/settings/<tab>), so it is skipped here to avoid counting it twice.
+  useEffect(() => {
+    if (section !== 'settings') trackPageView(`/${section}`, activeSection?.label ?? section)
+  }, [section, activeSection?.label])
 
   function changeMode(next: PeriodMode) {
     savePeriodMode(next)

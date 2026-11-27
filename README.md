@@ -57,6 +57,14 @@ Production is deployed only by the GitHub Action in [`.github/workflows/deploy-v
 
 The workflow limits secrets to the steps that use them, does not persist git credentials after checkout, and pins the Vercel CLI version.
 
+## Google Analytics (optional)
+
+Page-view analytics is off unless you set `VITE_GA_MEASUREMENT_ID` (a GA4 measurement ID such as `G-XXXXXXXXXX`; it is public, not a secret). For the deployed app add it as a Production environment variable in the Vercel project; for local development put it in `.env.local`.
+
+- Nothing is loaded and nothing is sent until the user clicks **Allow** on the "Help improve Ledgerly?" banner. They can change their mind in Settings → Account → Usage analytics. Saying no or ignoring the banner means no Google script is ever requested.
+- One `page_view` is sent per screen, using fixed paths: `/sign-in`, `/sign-up`, `/overview`, `/transactions`, `/reports`, `/accounts`, `/deposits`, `/settings/categories`, `/settings/backups`, `/settings/account`. Names, emails, amounts, descriptions and user IDs are never sent.
+- Google signals and ad personalization are disabled. Google itself still receives the usual request data (IP address, browser, device), so mention Google Analytics in your privacy policy.
+
 ## Included workflows
 
 - Add and edit dated expenses, income, and transfers. The type is chosen with Expense / Income / Transfer buttons; the category field is searchable and is suggested from earlier transactions with the same description; **Save & add another** keeps the form open for fast entry. Daily expenses are restricted to the `CASH` account; transfers update both account balances without counting as income or expenses.
@@ -109,6 +117,8 @@ The icons in `public/` (favicon, PWA, maskable, and Apple touch icons) are rende
 Financial records are stored in Supabase and accessed only after sign-in. Every table is protected by row-level security, and database functions derive ownership from the authenticated user rather than trusting a client-supplied user ID. The publishable/anon key is intended for browser use; it is not an authorization boundary by itself. Never place service-role or secret keys in frontend configuration.
 
 Deleting your account (Settings → Account) calls a database function that removes your Supabase Auth user, which cascades to every finance table, so all your data is permanently erased and the email can be reused. Download an encrypted backup first if you may want the data later. The app's `.env.local` file is ignored by Git. Supabase is a cloud service, so review its privacy, retention, and free-tier policies for your needs. Account numbers are sensitive: never store banking passwords, PINs, CVVs, or online-banking credentials. Download encrypted backups regularly, keep the passphrase separately, and verify that backups can be restored. The app cannot recover a lost passphrase.
+
+If Google Analytics is enabled (see above) it only receives screen names and the standard browser data Google collects; it is off until the user agrees.
 
 Keep downloaded CSV exports, `.pfbackup` files, and source financial records out of GitHub. `.gitignore` excludes these files, but check `git status` before committing.
 
