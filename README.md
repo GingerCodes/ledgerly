@@ -65,6 +65,7 @@ The workflow limits secrets to the steps that use them, does not persist git cre
 - Organize transactions with nested categories; archived categories remain available to existing records.
 - Generate expense reports for an inclusive date range, filtered by category, with an option to include subcategories. Results include a plain-English summary, daily average and largest expense, a category donut with shares, a spending-by-weekday chart, monthly/category breakdowns, matching transactions, and CSV export.
 - Switch every year-based view (Overview, Transactions, Reports defaults, CSV export names) between the Indian **financial year** (1 April to 31 March, the default) and the **calendar year**; the choice is remembered in the browser.
+- See net worth over the last 12 months on the Overview: cash, savings and fixed-deposit principal at each month end (recorded data only; deposit interest is not included).
 - Review period totals, category spending, account balances, and reported balance snapshots compared with recorded activity.
 - Export transactions as year-wise CSV and import validated CSV data. Existing transaction IDs are skipped during import.
 - Create and restore a full-database backup encrypted with AES-256-GCM and a passphrase.

@@ -656,6 +656,10 @@ export class FinanceDatabase {
     ).map(readTransaction)
   }
 
+  getAllTransactions(): Transaction[] {
+    return this.rows('SELECT * FROM transactions ORDER BY date DESC, created_at DESC').map(readTransaction)
+  }
+
   getRecentTransactions(limit: number): Transaction[] {
     return this.rows('SELECT * FROM transactions ORDER BY date DESC, created_at DESC LIMIT ?', [limit]).map(readTransaction)
   }

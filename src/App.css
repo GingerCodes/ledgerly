@@ -847,3 +847,20 @@ input[list]::-webkit-calendar-picker-indicator { display: none !important; }
 .period-toggle { width: 100%; max-width: 320px; }
 .period-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 14px; }
 .period-range { color: #526258; font-size: 13px; }
+
+/* Net worth chart */
+.networth-panel { margin-bottom: 14px; }
+.networth-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; }
+.networth-head strong { color: #20332c; font-size: 26px; }
+.networth-change { font-size: 13px; font-weight: 600; }
+.networth-change.up { color: #315f44; }
+.networth-change.down { color: #91483c; }
+.networth-breakdown { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 8px 0 12px; color: #526258; font-size: 13px; }
+.networth-breakdown b { margin-left: 4px; color: #293a30; }
+.networth-chart { width: 100%; }
+.networth-chart svg { display: block; max-width: 100%; }
+.networth-grid { stroke: #e3e9e4; stroke-width: 1; }
+.networth-axis { fill: #526258; font-size: 12px; }
+.networth-area { fill: rgba(36, 92, 72, .12); }
+.networth-line { fill: none; stroke: #245c48; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.networth-dot { fill: #fff; stroke: #245c48; stroke-width: 2; }
