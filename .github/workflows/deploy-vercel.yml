@@ -4,10 +4,9 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write # create the release tag
 
 concurrency:
   group: vercel-production
@@ -58,3 +57,8 @@ jobs:
 
       - name: Deploy to Vercel
         run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+
+      - name: Create release tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "v$(date -u +%Y.%m.%d)-${{ github.run_number }}" --target "$GITHUB_SHA" --generate-notes
