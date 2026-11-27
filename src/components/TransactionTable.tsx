@@ -25,11 +25,11 @@ export function TransactionTable({
             : accountNames.get(transaction.accountId ?? '') ?? 'Unknown account'
           return <tr key={transaction.id}>
             <td className="date-cell">{transaction.date}</td>
-            <td><b>{transaction.description}</b>{transaction.notes && <small className="table-note">{transaction.notes}</small>}</td>
-            <td><span className="category-cell">{transaction.type === 'transfer' ? accountText : categoryPath(transaction.categoryId, categories)}</span><small className="table-note">{transaction.type === 'transfer' ? 'Account transfer' : accountText}</small></td>
-            <td><span className={`transaction-type ${transaction.type}`}>{transaction.type}</span></td>
+            <td className="desc-cell"><b>{transaction.description}</b>{transaction.notes && <small className="table-note">{transaction.notes}</small>}</td>
+            <td className="meta-cell"><span className="category-cell">{transaction.type === 'transfer' ? accountText : categoryPath(transaction.categoryId, categories)}</span><small className="table-note">{transaction.type === 'transfer' ? 'Account transfer' : accountText}</small></td>
+            <td className="type-cell"><span className={`transaction-type ${transaction.type}`}>{transaction.type}</span></td>
             <td className={`amount-cell align-right ${transaction.type === 'income' ? 'income-amount' : transaction.type === 'expense' ? 'expense-amount' : ''}`}>{transaction.type === 'expense' ? '−' : transaction.type === 'income' ? '+' : ''}{formatRupees(transaction.amountPaise)}</td>
-            <td><button className="icon-button" aria-label={`Edit ${transaction.description}`} onClick={() => onEdit(transaction)}><Pencil size={15} /></button></td>
+            <td className="action-cell"><button className="icon-button" aria-label={`Edit ${transaction.description}`} onClick={() => onEdit(transaction)}><Pencil size={15} /></button></td>
           </tr>
         })}</tbody>
       </table>

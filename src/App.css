@@ -792,3 +792,30 @@ html, body { overflow-x: hidden; }
 .form-grid input[type=date]::-webkit-date-and-time-value, .snapshot-form input[type=date]::-webkit-date-and-time-value, .report-filter-grid input[type=date]::-webkit-date-and-time-value { min-height: 1.5em; margin: 0; text-align: left; }
 /* The browser's own suggestion arrow duplicates the suggestion list and looks like a stray glyph. */
 input[list]::-webkit-calendar-picker-indicator { display: none !important; }
+
+/* Phones: show each transaction as a card so Amount is never hidden off-screen. */
+@media (max-width: 760px) {
+  .app-shell .data-table, .app-shell .compact-table .data-table { display: block; min-width: 0; }
+  .app-shell .data-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .app-shell .data-table tbody { display: block; }
+  .app-shell .data-table tr {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; padding: 12px 14px; border-top: 1px solid #f0f3f0;
+    grid-template-areas: "desc amount" "meta edit" "date type";
+  }
+  .app-shell .data-table td, .app-shell .data-table td:first-child { display: block; min-width: 0; min-height: 0; padding: 0; border: 0; }
+  .app-shell .data-table .desc-cell { grid-area: desc; }
+  .app-shell .data-table .amount-cell { grid-area: amount; text-align: right; }
+  .app-shell .data-table .meta-cell { grid-area: meta; }
+  .app-shell .data-table .action-cell { grid-area: edit; justify-self: end; }
+  .app-shell .data-table .date-cell { grid-area: date; }
+  .app-shell .data-table .type-cell { grid-area: type; justify-self: end; }
+  .app-shell .data-table .category-cell, .app-shell .data-table .table-note { max-width: none; }
+  .app-shell .data-table .desc-cell .table-note { white-space: normal; }
+  /* All sections fit on one row: no sideways scrolling, so Settings is always reachable. */
+  .app-shell .side-nav { justify-content: space-between; overflow-x: visible; }
+  .app-shell .nav-item { flex: 1 1 0; min-width: 0; padding: 5px 1px; font-size: 11px; letter-spacing: -.1px; }
+  .app-shell .nav-item span { overflow-wrap: normal; word-break: normal; }
+}
+@media (max-width: 359px) {
+  .app-shell .nav-item { font-size: 9.5px; letter-spacing: -.3px; }
+}
