@@ -8,7 +8,7 @@ function memoryStorage() {
   return { getItem: (key: string) => data.get(key) ?? null, setItem: (key: string, value: string) => { data.set(key, value) } }
 }
 
-const pageViews = () => (window.dataLayer ?? []).map((entry) => Array.from(entry as ArrayLike<unknown>)).filter((entry) => entry[0] === 'event' && entry[1] === 'page_view')
+const pageViews = () => (window.dataLayer ?? []).filter((entry): entry is { event: string; page_path: string; page_title: string } => (entry as { event?: string }).event === 'virtual_page_view')
 
 beforeEach(() => {
   vi.stubGlobal('localStorage', memoryStorage())
@@ -20,7 +20,7 @@ afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals() })
 
 describe('analytics', () => {
   it('does nothing without a valid measurement ID', () => {
-    vi.stubEnv('VITE_GA_MEASUREMENT_ID', 'not-an-id')
+    vi.stubEnv('VITE_GTM_ID', 'G-NOT-GTM')
     expect(analyticsAvailable()).toBe(false)
     setConsent('granted')
     trackPageView('/overview', 'Overview')
@@ -29,7 +29,7 @@ describe('analytics', () => {
   })
 
   it('loads nothing until the user agrees, then sends the page they are on', () => {
-    vi.stubEnv('VITE_GA_MEASUREMENT_ID', 'G-TEST123')
+    vi.stubEnv('VITE_GTM_ID', 'GTM-TEST123')
     expect(analyticsAvailable()).toBe(true)
     expect(getConsent()).toBeNull()
 
@@ -39,20 +39,20 @@ describe('analytics', () => {
     expect(pageViews()).toHaveLength(0)
 
     setConsent('granted')
-    expect(document.querySelector('script')?.getAttribute('src')).toContain('id=G-TEST123')
-    expect(pageViews()).toEqual([['event', 'page_view', expect.objectContaining({ page_path: '/overview', page_title: 'Overview' })]])
+    expect(document.querySelector('script')?.getAttribute('src')).toContain('gtm.js?id=GTM-TEST123')
+    expect(pageViews()).toEqual([expect.objectContaining({ page_path: '/overview', page_title: 'Overview' })])
 
     trackPageView('/transactions', 'Transactions')
-    expect(pageViews().map((entry) => (entry[2] as { page_path: string }).page_path)).toEqual(['/overview', '/transactions'])
+    expect(pageViews().map((entry) => entry.page_path)).toEqual(['/overview', '/transactions'])
   })
 
   it('stops sending after the user declines', () => {
-    vi.stubEnv('VITE_GA_MEASUREMENT_ID', 'G-TEST123')
+    vi.stubEnv('VITE_GTM_ID', 'GTM-TEST123')
     setConsent('granted')
     trackPageView('/reports', 'Reports')
     setConsent('denied')
     trackPageView('/accounts', 'Accounts')
     expect(pageViews()).toHaveLength(1)
-    expect(window['ga-disable-G-TEST123']).toBe(true)
+    expect(Array.from((window.dataLayer ?? []).at(-1) as ArrayLike<unknown>)).toEqual(['consent', 'update', { analytics_storage: 'denied' }])
   })
 })

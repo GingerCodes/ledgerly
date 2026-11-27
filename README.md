@@ -57,13 +57,19 @@ Production is deployed only by the GitHub Action in [`.github/workflows/deploy-v
 
 The workflow limits secrets to the steps that use them, does not persist git credentials after checkout, and pins the Vercel CLI version.
 
-## Google Analytics (optional)
+## Google Analytics through Tag Manager (optional)
 
-Page-view analytics is off unless you set `VITE_GA_MEASUREMENT_ID` (a GA4 measurement ID such as `G-XXXXXXXXXX`; it is public, not a secret). For the deployed app add it as a Production environment variable in the Vercel project; for local development put it in `.env.local`.
+Page-view analytics is off unless you set `VITE_GTM_ID` to a Google Tag Manager container ID such as `GTM-XXXXXXX` (it is public, not a secret). For the deployed app add it as a Production environment variable in the Vercel project; for local development put it in `.env.local`.
 
-- Nothing is loaded and nothing is sent until the user clicks **Allow** on the "Help improve Ledgerly?" banner. They can change their mind in Settings → Account → Usage analytics. Saying no or ignoring the banner means no Google script is ever requested.
-- One `page_view` is sent per screen, using fixed paths: `/sign-in`, `/sign-up`, `/overview`, `/transactions`, `/reports`, `/accounts`, `/deposits`, `/settings/categories`, `/settings/backups`, `/settings/account`. Names, emails, amounts, descriptions and user IDs are never sent.
-- Google signals and ad personalization are disabled. Google itself still receives the usual request data (IP address, browser, device), so mention Google Analytics in your privacy policy.
+- Nothing is loaded and nothing is sent until the user clicks **Allow** on the "Help improve Ledgerly?" banner. They can change their mind in Settings → Account → Usage analytics. Saying no or ignoring the banner means no Google script is ever requested. After a "no" following an earlier "yes", the app stops sending events and tells GTM `analytics_storage: denied`; the already-loaded container stays in memory until the page reloads.
+- The app pushes one `virtual_page_view` event to `dataLayer` per screen (it has no URL router), with `page_path`, `page_title` and `page_location`. Paths are fixed: `/sign-in`, `/sign-up`, `/overview`, `/transactions`, `/reports`, `/accounts`, `/deposits`, `/settings/categories`, `/settings/backups`, `/settings/account`. Names, emails, amounts, descriptions and user IDs are never sent.
+- Configure the container once (GTM Preview mode helps to check it):
+  1. Add a **Google tag** with your GA4 measurement ID, trigger **Initialization - All Pages**, and under configuration settings add the parameter `send_page_view` = `false`.
+  2. Create a **Custom Event** trigger with the event name `virtual_page_view`.
+  3. Create three **Data Layer Variables**: `page_path`, `page_title`, `page_location`.
+  4. Add a **Google Analytics: GA4 Event** tag with event name `page_view`, the three parameters set from those variables, and the custom event trigger.
+  5. Publish the container.
+- Disable Google signals and ad personalization in the GA4 property settings, and mention Google Analytics in your privacy policy: Google still receives the usual request data (IP address, browser, device) once a user allows it.
 
 ## Included workflows
 
@@ -118,7 +124,7 @@ Financial records are stored in Supabase and accessed only after sign-in. Every 
 
 Deleting your account (Settings → Account) calls a database function that removes your Supabase Auth user, which cascades to every finance table, so all your data is permanently erased and the email can be reused. Download an encrypted backup first if you may want the data later. The app's `.env.local` file is ignored by Git. Supabase is a cloud service, so review its privacy, retention, and free-tier policies for your needs. Account numbers are sensitive: never store banking passwords, PINs, CVVs, or online-banking credentials. Download encrypted backups regularly, keep the passphrase separately, and verify that backups can be restored. The app cannot recover a lost passphrase.
 
-If Google Analytics is enabled (see above) it only receives screen names and the standard browser data Google collects; it is off until the user agrees.
+If analytics is enabled (see above) Google only receives screen names and the standard browser data it collects; it is off until the user agrees.
 
 Keep downloaded CSV exports, `.pfbackup` files, and source financial records out of GitHub. `.gitignore` excludes these files, but check `git status` before committing.
 
