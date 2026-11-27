@@ -7,8 +7,17 @@
 *.db-*
 *.bak
 *.backup
+*.pfbackup
+*.csv
 
 # Local secrets and environment configuration
 .env
 .env.*
 !.env.example
+
+# Node tooling and build outputs
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
