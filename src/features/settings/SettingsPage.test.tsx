@@ -26,7 +26,7 @@ const finance: FinanceContextValue = {
 }
 
 function renderSettings() {
-  return render(<FinanceContext.Provider value={finance}><SettingsPage onAccountDeleted={async () => null} /></FinanceContext.Provider>)
+  return render(<FinanceContext.Provider value={finance}><SettingsPage fullName="Alex Jose" email="me@example.com" onSaveName={async () => null} onAccountDeleted={async () => null} /></FinanceContext.Provider>)
 }
 
 describe('SettingsPage', () => {
@@ -43,5 +43,6 @@ describe('SettingsPage', () => {
 
     await userEvent.click(screen.getByRole('tab', { name: 'Account' }))
     expect(screen.getByRole('button', { name: 'Delete my account' })).toBeTruthy()
+    expect((screen.getByLabelText('Full name') as HTMLInputElement).value).toBe('Alex Jose')
   })
 })

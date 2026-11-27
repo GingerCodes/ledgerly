@@ -5,7 +5,7 @@ import { FinanceProvider } from './app/FinanceProvider'
 import { useAuthSession } from './app/useAuthSession'
 import { useFinanceDatabase } from './app/useFinanceDatabase'
 import { supabaseSetup } from './data/supabase-client'
-import { displayName } from './lib/user'
+import { displayName, fullName } from './lib/user'
 import { AuthScreen } from './features/auth/AuthScreen'
 import './App.css'
 
@@ -41,7 +41,7 @@ function App() {
 
   return (
     <FinanceProvider database={database}>
-      <AppShell userName={displayName(auth.session.user)} email={auth.session.user.email} onSignOut={auth.signOut} />
+      <AppShell userName={displayName(auth.session.user)} fullName={fullName(auth.session.user)} email={auth.session.user.email} onSignOut={auth.signOut} onUpdateName={auth.updateFullName} />
     </FinanceProvider>
   )
 }
