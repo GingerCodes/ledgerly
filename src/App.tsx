@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from 'react'
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type FormEvent } from 'react'
 import type { Session, SupabaseClient } from '@supabase/supabase-js'
 import './App.css'
 import {
@@ -9,6 +9,7 @@ import {
   BriefcaseBusiness,
   ChartNoAxesCombined,
   Check,
+  ChevronDown,
   ChevronRight,
   CircleHelp,
   Download,
@@ -227,6 +228,92 @@ function EmptyState({ children }: { children: string }) {
   return <div className="empty-state"><CircleHelp size={20} />{children}</div>
 }
 
+type ComboOption = { id: string; label: string }
+
+function ComboBox({ label, options, value, onChange, placeholder, disabled, className }: {
+  label: string
+  options: ComboOption[]
+  value: string
+  onChange: (id: string) => void
+  placeholder?: string
+  disabled?: boolean
+  className?: string
+}) {
+  const baseId = useId()
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [active, setActive] = useState(0)
+  const listRef = useRef<HTMLUListElement>(null)
+  const selected = options.find((option) => option.id === value)
+  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean)
+  const visible = words.length ? options.filter((option) => words.every((word) => option.label.toLowerCase().includes(word))) : options
+
+  useEffect(() => {
+    if (open) listRef.current?.children[active]?.scrollIntoView({ block: 'nearest' })
+  }, [open, active, visible.length])
+
+  const openList = () => {
+    if (open || disabled) return
+    setQuery('')
+    setActive(Math.max(0, options.findIndex((option) => option.id === value)))
+    setOpen(true)
+  }
+  const choose = (option: ComboOption | undefined) => {
+    if (option) onChange(option.id)
+    setOpen(false)
+  }
+
+  return (
+    <div className={`combo-field ${className ?? ''}`}>
+      <span id={`${baseId}-label`}>{label}</span>
+      <div className="combo">
+        <input
+          className="combo-input"
+          role="combobox"
+          aria-expanded={open}
+          aria-controls={`${baseId}-list`}
+          aria-labelledby={`${baseId}-label`}
+          aria-autocomplete="list"
+          aria-activedescendant={open && visible[active] ? `${baseId}-${active}` : undefined}
+          autoComplete="off"
+          disabled={disabled}
+          placeholder={placeholder}
+          value={open ? query : selected?.label ?? ''}
+          onFocus={openList}
+          onClick={openList}
+          onBlur={() => setOpen(false)}
+          onChange={(event) => { setQuery(event.target.value); setActive(0); setOpen(true) }}
+          onKeyDown={(event) => {
+            if (event.key === 'ArrowDown') { event.preventDefault(); if (!open) openList(); else setActive((index) => Math.min(index + 1, visible.length - 1)) }
+            else if (event.key === 'ArrowUp') { event.preventDefault(); setActive((index) => Math.max(index - 1, 0)) }
+            else if (event.key === 'Enter' && open) { event.preventDefault(); choose(visible[active]) }
+            else if (event.key === 'Escape' && open) { event.preventDefault(); event.stopPropagation(); setOpen(false) }
+          }}
+        />
+        <ChevronDown className="combo-chevron" size={16} aria-hidden="true" />
+        {open && (
+          <ul className="combo-list" id={`${baseId}-list`} role="listbox" aria-labelledby={`${baseId}-label`} ref={listRef}>
+            {visible.length === 0 && <li className="combo-empty" role="presentation">No matching categories</li>}
+            {visible.map((option, index) => (
+              <li
+                key={option.id || 'none'}
+                id={`${baseId}-${index}`}
+                role="option"
+                aria-selected={option.id === value}
+                className={`${index === active ? 'active' : ''} ${option.id === value ? 'selected' : ''}`}
+                onMouseDown={(event) => { event.preventDefault(); choose(option) }}
+                onMouseEnter={() => setActive(index)}
+              >
+                {option.label}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function TransactionForm({
   accounts,
   categories,
@@ -249,11 +336,11 @@ function TransactionForm({
   const [accountId, setAccountId] = useState(transaction?.accountId ?? 'CASH')
   const [fromAccountId, setFromAccountId] = useState(transaction?.fromAccountId ?? 'CASH')
   const [toAccountId, setToAccountId] = useState(transaction?.toAccountId ?? '')
-  const [categoryText, setCategoryText] = useState(transaction?.categoryId ? categoryPath(transaction.categoryId, categories) : '')
+  const [categoryId, setCategoryId] = useState(transaction?.categoryId ?? '')
   const categoryOptions = categories
     .filter((category) => category.active || category.id === transaction?.categoryId)
     .map((category) => ({ id: category.id, label: categoryPath(category.id, categories) }))
-  const categoryId = categoryOptions.find((option) => option.label === categoryText)?.id ?? ''
+    .sort((first, second) => first.label.localeCompare(second.label))
   const [notes, setNotes] = useState(transaction?.notes ?? '')
   const [reason, setReason] = useState('')
   const [formError, setFormError] = useState('')
@@ -264,13 +351,13 @@ function TransactionForm({
   // Fill the category from the latest transaction with the same description, only when the field is still empty.
   const changeDescription = (value: string) => {
     setDescription(value)
-    if (type === 'transfer' || categoryText) return
+    if (type === 'transfer' || categoryId) return
     const key = value.trim().toLowerCase()
     const match = transactions
       .filter((item) => item.categoryId && item.description.trim().toLowerCase() === key)
       .sort((a, b) => b.date.localeCompare(a.date))[0]
     const option = match && categoryOptions.find((item) => item.id === match.categoryId)
-    if (option) setCategoryText(option.label)
+    if (option) setCategoryId(option.id)
   }
 
   const chooseType = (nextType: TransactionInput['type']) => {
@@ -281,7 +368,7 @@ function TransactionForm({
       if (nextType === 'expense') setAccountId('CASH')
     } else {
       setAccountId('')
-      setCategoryText('')
+      setCategoryId('')
       setFromAccountId('CASH')
       setToAccountId(accounts.find((account) => account.id !== 'CASH')?.id ?? '')
     }
@@ -291,10 +378,6 @@ function TransactionForm({
     event.preventDefault()
     const keepOpen = (event.nativeEvent as SubmitEvent).submitter?.getAttribute('name') === 'again'
     setFormError('')
-    if (type !== 'transfer' && categoryText && !categoryId) {
-      setFormError('Pick a category from the list, or clear the field for Uncategorized.')
-      return
-    }
     setSaving(true)
     try {
       await onSave({
@@ -313,7 +396,7 @@ function TransactionForm({
         setDescription('')
         setAmount('')
         setNotes('')
-        setCategoryText('')
+        setCategoryId('')
         descriptionRef.current?.focus()
       }
     } catch (error) {
@@ -391,13 +474,7 @@ function TransactionForm({
           </label>
         )}
         {type !== 'transfer' && (
-          <label>
-            Category
-            <input list="category-options" autoComplete="off" onFocus={(event) => event.currentTarget.select()} value={categoryText} placeholder="Uncategorized — type to search" onChange={(event) => setCategoryText(event.target.value)} />
-            <datalist id="category-options">
-              {categoryOptions.map((option) => <option key={option.id} value={option.label} />)}
-            </datalist>
-          </label>
+          <ComboBox label="Category" options={[{ id: '', label: 'Uncategorized' }, ...categoryOptions]} value={categoryId} onChange={setCategoryId} placeholder="Search categories" />
         )}
         <label className="span-two">
           Notes
@@ -622,12 +699,7 @@ function CategoryForm({
       {formError && <p className="form-error" role="alert">{formError}</p>}
       <div className="form-grid">
         <label>Category name<input required maxLength={80} value={name} onChange={(event) => setName(event.target.value)} /></label>
-        <label>Parent category
-          <select value={parentCategoryId} onChange={(event) => setParentCategoryId(event.target.value)}>
-            <option value="">Top level</option>
-            {categories.filter((item) => item.id !== category?.id).map((item) => <option key={item.id} value={item.id}>{categoryPath(item.id, categories)}</option>)}
-          </select>
-        </label>
+        <ComboBox label="Parent category" options={[{ id: '', label: 'Top level' }, ...categories.filter((item) => item.id !== category?.id).map((item) => ({ id: item.id, label: categoryPath(item.id, categories) })).sort((first, second) => first.label.localeCompare(second.label))]} value={parentCategoryId} onChange={setParentCategoryId} placeholder="Search categories" />
       </div>
       <div className="form-actions"><button className="button button-primary" type="submit">Save category</button></div>
     </form>
@@ -993,7 +1065,7 @@ function App() {
             <>
               <section className="page-heading">
                 <div><p className="eyebrow">YOUR MONEY, CLEARLY</p><h1>Good {CURRENT_HOUR < 12 ? 'morning' : CURRENT_HOUR < 18 ? 'afternoon' : 'evening'}.</h1><p className="page-subtitle">A clear view of your finances, all in one place.</p></div>
-                <button className="button button-primary" onClick={() => setTransactionForm(null)}><Plus size={16} /> New transaction</button>
+                <button className="button button-primary desktop-only" onClick={() => setTransactionForm(null)}><Plus size={16} /> New transaction</button>
               </section>
               <section className="metric-grid">
                 <article className="metric-card"><div className="metric-label"><span className="metric-icon green"><Wallet size={18} /></span> Cash + savings</div><strong>{formatRupees(accounts.reduce((total, account) => total + account.currentBalancePaise, 0))}</strong><small>Across {accounts.length} accounts</small></article>
@@ -1027,7 +1099,7 @@ function App() {
             <>
               <section className="page-heading">
                 <div><p className="eyebrow">DAILY MONEY MOVEMENT</p><h1>Transactions</h1><p className="page-subtitle">Track spending, income, and transfers between accounts.</p></div>
-                <button className="button button-primary" onClick={() => setTransactionForm(null)}><Plus size={16} /> Add transaction</button>
+                <button className="button button-primary desktop-only" onClick={() => setTransactionForm(null)}><Plus size={16} /> Add transaction</button>
               </section>
               {transactionForm !== undefined && <TransactionForm key={transactionForm?.id ?? 'new-transaction'} transaction={transactionForm} accounts={accounts} categories={categories} transactions={transactions} onCancel={() => setTransactionForm(undefined)} onSave={createTransaction} />}
               <section className="panel table-panel">
@@ -1058,13 +1130,7 @@ function App() {
                   <div className="report-filter-grid">
                     <label>From date<input required type="date" value={reportStartDate} onChange={(event) => setReportStartDate(event.target.value)} /></label>
                     <label>To date<input required type="date" value={reportEndDate} onChange={(event) => setReportEndDate(event.target.value)} /></label>
-                    <label>Category
-                      <select value={reportCategoryId} onChange={(event) => setReportCategoryId(event.target.value)}>
-                        <option value={ALL_CATEGORIES}>All categories</option>
-                        <option value={UNCATEGORIZED}>Uncategorized</option>
-                        {categories.map((category) => <option key={category.id} value={category.id}>{categoryPath(category.id, categories)}</option>)}
-                      </select>
-                    </label>
+                    <ComboBox label="Category" options={[{ id: ALL_CATEGORIES, label: 'All categories' }, { id: UNCATEGORIZED, label: 'Uncategorized' }, ...categories.map((category) => ({ id: category.id, label: categoryPath(category.id, categories) })).sort((first, second) => first.label.localeCompare(second.label))]} value={reportCategoryId} onChange={setReportCategoryId} placeholder="Search categories" />
                     <label className="report-checkbox">
                       <input
                         type="checkbox"
