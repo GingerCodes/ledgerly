@@ -26,8 +26,6 @@
 .breadcrumb { display: flex; align-items: center; gap: 9px; color: #9aa59f; font-size: 11px; }
 .breadcrumb strong { color: #495a50; font-weight: 600; }
 .topbar-right { display: flex; align-items: center; gap: 21px; }
-.local-status { display: flex; align-items: center; gap: 7px; color: #79877f; font-size: 10px; }
-.local-status span { width: 7px; height: 7px; border-radius: 50%; background: #4b9e6f; box-shadow: 0 0 0 3px #e8f4ec; }
 .mobile-brand { display: none; }
 
 .page-content { width: min(1120px, 100%); flex: 1; margin: 0 auto; padding: 37px 42px 60px; }
@@ -254,8 +252,6 @@ h2 { margin-bottom: 0; font-size: 16px; font-weight: 700; letter-spacing: -.35px
   .breadcrumb { display: none; }
   .topbar-right { gap: 11px; }
   .top-add { min-height: 31px; padding: 0 9px; font-size: 8px; }
-  .local-status { font-size: 0; }
-  .local-status span { width: 8px; height: 8px; }
   .page-content { padding: 26px 17px 35px; }
   .page-heading { align-items: flex-start; margin-bottom: 19px; }
   .page-heading > .desktop-only { display: none; }
@@ -297,7 +293,6 @@ h2 { margin-bottom: 0; font-size: 16px; font-weight: 700; letter-spacing: -.35px
 }
 
 @media (max-width: 420px) {
-  .local-status { display: none; }
   .topbar { padding: 0 12px; }
   .topbar-right { gap: 8px; }
   .top-add { gap: 5px; }
@@ -599,7 +594,6 @@ body { font-size: 16px; line-height: 1.55; }
   .app-shell .main-column { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
   .app-shell .nav-item { flex: 0 0 88px; min-height: 60px; padding: 5px 3px; font-size: 12px; }
   .app-shell .nav-item span { line-height: 1.15; text-align: center; white-space: normal; overflow-wrap: anywhere; }
-  .app-shell .local-status { font-size: 12px; }
   .app-shell .top-add { min-height: 44px; font-size: 14px; }
   .app-shell .page-subtitle { font-size: 14px; }
   .app-shell .metric-label { font-size: 12px; }
@@ -632,13 +626,9 @@ body { font-size: 16px; line-height: 1.55; }
 .auth-success { padding: 11px; border-radius: 7px; color: #174432; background: #eaf3ed; font-size: 14px; line-height: 1.5; }
 .auth-setup { padding-left: 22px; color: #293a30; font-size: 14px; line-height: 1.7; }
 .auth-setup code { overflow-wrap: anywhere; }
-.button-signout { min-height: 44px; font-size: 14px; }
 
 @media (max-width: 760px) {
   .app-shell .topbar-right { gap: 7px; }
-  .app-shell .local-status { display: none; }
-  .app-shell .button-signout { width: 44px; min-width: 44px; min-height: 44px; padding: 0; }
-  .app-shell .button-signout span { display: none; }
 }
 
 @media (max-width: 420px) {
@@ -667,7 +657,13 @@ body { font-size: 16px; line-height: 1.55; }
 .report-weekday-chart .peak span { background: #245c48; }
 .report-weekday-chart small { color: #526258; font-size: 12px; }
 
-.update-banner { position: fixed; z-index: 1000; right: 16px; bottom: 16px; left: 16px; display: flex; max-width: 420px; align-items: center; justify-content: space-between; gap: 12px; margin-left: auto; padding: 12px 14px; border: 1px solid #cfe0d3; border-radius: 10px; color: #20332c; background: #eef6f0; box-shadow: 0 8px 24px rgba(32, 51, 44, .18); font-size: 13px; font-weight: 600; }
+/* Bottom-right (above the bottom nav on phones) stack for the update and install banners. */
+.toast-stack { position: fixed; z-index: 1000; right: 16px; bottom: 16px; display: flex; width: min(420px, calc(100vw - 32px)); flex-direction: column; gap: 8px; pointer-events: none; }
+.toast-stack > * { pointer-events: auto; }
+.update-banner, .install-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid #cfe0d3; border-radius: 10px; color: #20332c; background: #eef6f0; box-shadow: 0 8px 24px rgba(32, 51, 44, .18); font-size: 13px; font-weight: 600; }
+.install-banner b { display: block; margin-bottom: 2px; font-size: 14px; }
+.install-banner > span:first-child { min-width: 0; font-weight: 400; line-height: 1.4; }
+.install-actions { display: flex; flex: none; gap: 8px; }
 
 /* Responsive hardening: prevent overflow and misalignment on tablet/mobile */
 html, body { overflow-x: hidden; }
@@ -690,7 +686,6 @@ html, body { overflow-x: hidden; }
 .app-shell .segmented-field { font-size: 14px; color: #293a30; }
 
 @media (max-width: 1100px) {
-  .app-shell .local-status { display: none; }
   .breadcrumb { white-space: nowrap; }
   .page-heading > .desktop-only { display: none; }
   .page-heading { flex-wrap: wrap; align-items: flex-start; }
@@ -739,7 +734,8 @@ html, body { overflow-x: hidden; }
   .app-shell .app-footer { flex-direction: column; gap: 4px; }
   .app-shell .app-footer span:last-child { max-width: none; }
   .modal-backdrop { padding: 8px; }
-  .update-banner { right: 8px; left: 8px; bottom: calc(72px + env(safe-area-inset-bottom)); }
+  .toast-stack { right: 8px; bottom: calc(72px + env(safe-area-inset-bottom)); width: calc(100vw - 16px); }
+  .install-banner { flex-wrap: wrap; }
 }
 
 @media (max-width: 420px) {
@@ -829,3 +825,20 @@ input[list]::-webkit-calendar-picker-indicator { display: none !important; }
 .profile-panel > p:not(.eyebrow) { margin-bottom: 14px; color: #596a60; font-size: 13px; line-height: 1.6; }
 .profile-panel label { display: grid; gap: 6px; margin-bottom: 14px; color: #596a60; font-size: 12px; font-weight: 600; }
 .profile-panel input { width: 100%; min-height: 40px; padding: 8px 10px; border: 1px solid #e2e9e3; border-radius: 6px; font-size: 13px; }
+
+/* Sidebar account block (desktop and tablet browsers) */
+.sidebar-user { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 10px; margin-bottom: 12px; padding: 12px 10px; border: 1px solid #e8eee8; border-radius: 10px; }
+.sidebar-avatar { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 50%; color: #fff; background: var(--green); font-size: 14px; font-weight: 700; }
+.sidebar-user-text { min-width: 0; }
+.sidebar-user-text b, .sidebar-user-text small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-user-text b { color: #293a30; font-size: 13px; }
+.sidebar-user-text small { margin-top: 2px; color: #526258; font-size: 12px; }
+.sidebar-signout { grid-column: 1 / -1; min-height: 40px; margin-top: 6px; font-size: 13px; }
+/* Sign out lives in the sidebar in a browser, and in Settings -> Account in the installed app and on phones. */
+.signout-panel { display: none; max-width: 560px; margin-bottom: 20px; }
+.signout-panel h2 { margin-bottom: 8px; font-size: 15px; }
+.signout-panel > p:not(.eyebrow) { margin-bottom: 14px; color: #596a60; font-size: 13px; line-height: 1.6; }
+@media (display-mode: standalone), (max-width: 760px) {
+  .signout-panel { display: block; }
+  .sidebar-user { display: none; }
+}
