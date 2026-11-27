@@ -19,7 +19,7 @@ export function useFinanceDatabase(supabase: SupabaseClient | null, userId: stri
         setLoadingError('')
       }
     }).catch((error: unknown) => {
-      if (active) setLoadingError(error instanceof Error ? error.message : 'Could not open Supabase finance data.')
+      if (active) setLoadingError(error instanceof Error ? error.message : 'Could not open your finance data.')
     })
     return () => { active = false }
   }, [supabase, userId])

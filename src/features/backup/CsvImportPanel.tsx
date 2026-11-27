@@ -38,7 +38,7 @@ export function CsvImportPanel() {
   return (
     <section className="panel csv-import-panel">
       <div className="backup-icon csv"><ArrowLeftRight size={20} /></div><p className="eyebrow">ONE-TIME HISTORICAL IMPORT</p><h2>Import transactions from CSV</h2><p>Choose an annual CSV export in this app's format. Review validation before importing; existing transaction IDs are skipped.</p>
-      <label className="file-drop"><FileUp size={20} /><span><b>Select a CSV file</b><small>CSV is read in your browser and saved to Supabase.</small></span><input type="file" accept=".csv,text/csv" onChange={(event) => void selectCsv(event.target.files?.[0])} /></label>
+      <label className="file-drop"><FileUp size={20} /><span><b>Select a CSV file</b><small>CSV is read in your browser and saved to your account.</small></span><input type="file" accept=".csv,text/csv" onChange={(event) => void selectCsv(event.target.files?.[0])} /></label>
       {csvPreview && <div className="csv-preview">
         <div className="preview-heading"><b>{csvPreview.fileName}</b><span>{csvPreview.rows.length} valid row{csvPreview.rows.length === 1 ? '' : 's'}</span></div>
         {csvPreview.errors.length > 0 && <ul className="csv-errors">{csvPreview.errors.slice(0, 12).map((error, index) => <li key={`${error}-${index}`}>{error}</li>)}</ul>}

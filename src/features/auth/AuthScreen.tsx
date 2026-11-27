@@ -75,11 +75,11 @@ export function AuthScreen({
       <section className="auth-card">
         <div className="loading-mark"><Wallet size={28} /></div>
         <p className="eyebrow">PRIVATE FINANCE TRACKER</p>
-        <h1>{client ? 'Sign in to Ledgerly' : 'Connect Ledgerly to Supabase'}</h1>
+        <h1>{client ? 'Sign in to Ledgerly' : 'Set up Ledgerly'}</h1>
         <p className="auth-description">
           {client
-            ? 'Your finance records are stored in your private Supabase account.'
-            : 'Set your Supabase project URL and publishable/anon key in a local environment file.'}
+            ? 'Your finance records are stored in your private account.'
+            : 'Set SB_URL and SB_ANON_KEY in a local environment file.'}
         </p>
         {(configurationError || externalError || error) && (
           <p className="form-error" role="alert">{configurationError || externalError || error}</p>
@@ -88,7 +88,7 @@ export function AuthScreen({
         {!client ? (
           <ol className="auth-setup">
             <li>Copy <code>.env.example</code> to <code>.env.local</code>.</li>
-            <li>Enter the project URL and publishable/anon key from Supabase Project Settings → API.</li>
+            <li>Enter the project URL and publishable/anon key from your project's API settings.</li>
             <li>Apply the SQL migration documented in README, then restart the app.</li>
           </ol>
         ) : (
