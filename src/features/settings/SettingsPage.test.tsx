@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { FinanceContext, type FinanceContextValue } from '../../app/finance-context'
 import type { FinanceDatabase } from '../../data/finance-database'
@@ -27,8 +28,21 @@ const finance: FinanceContextValue = {
 
 const onSignOut = vi.fn()
 
-function renderSettings() {
-  return render(<FinanceContext.Provider value={finance}><SettingsPage fullName="Alex Jose" email="me@example.com" onSaveName={async () => null} onSignOut={onSignOut} onAccountDeleted={async () => null} /></FinanceContext.Provider>)
+function Path() {
+  return <output data-testid="path">{useLocation().pathname}</output>
+}
+
+function renderSettings(startAt = '/settings/categories') {
+  return render(
+    <MemoryRouter initialEntries={[startAt]}>
+      <FinanceContext.Provider value={finance}>
+        <Routes>
+          <Route path="/settings/:tab" element={<SettingsPage fullName="Alex Jose" email="me@example.com" onSaveName={async () => null} onSignOut={onSignOut} onAccountDeleted={async () => null} />} />
+        </Routes>
+        <Path />
+      </FinanceContext.Provider>
+    </MemoryRouter>,
+  )
 }
 
 describe('SettingsPage', () => {
@@ -48,5 +62,17 @@ describe('SettingsPage', () => {
     expect((screen.getByLabelText('Full name') as HTMLInputElement).value).toBe('Alex Jose')
     await userEvent.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(onSignOut).toHaveBeenCalledOnce()
+  })
+
+  it('keeps the selected tab in the URL, opens a tab straight from its URL, and fixes an unknown tab', async () => {
+    renderSettings('/settings/account')
+    expect(screen.getByRole('tab', { name: 'Account' }).getAttribute('aria-selected')).toBe('true')
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Backup & import' }))
+    expect(screen.getByTestId('path').textContent).toBe('/settings/backups')
+
+    cleanup()
+    renderSettings('/settings/nonsense')
+    expect(screen.getByTestId('path').textContent).toBe('/settings/categories')
   })
 })
