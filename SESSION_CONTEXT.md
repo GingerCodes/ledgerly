@@ -37,6 +37,7 @@ The user selected Supabase as the cloud source of truth. Do not create test tran
 - Fixed deposits require a funding savings account for new deposits; the principal reduces that account's balance (computed in SQL, not stored as a transaction, so it does not appear in the transactions list). Saving fails if the balance would go negative (checked against today). Closing a deposit does not return the principal.
 - Year view: Overview, Transactions and report defaults follow a financial-year (Apr to Mar, default) or calendar-year mode (`src/lib/period.ts`, `PeriodToggle`, remembered in localStorage). DB queries take ISO date ranges (`getTransactions(start, end, search)`, `getPeriodSummary`, `getRecentTransactions`).
 - Net worth chart on Overview (`src/domain/networth.ts`, `NetWorthChart`): month-end balances plus FD principal for 12 months; accounts count from their opening date; a closed FD is assumed paid out on its maturity date (no closed-on date is stored).
+- Optional Google Tag Manager page views (`src/lib/analytics.ts`): off unless `VITE_GTM_ID` (`GTM-XXXXXXX`) is set, and nothing loads until the user clicks Allow (banner, or Settings → Account → Usage analytics). Pushes a `virtual_page_view` event with a fixed screen path to `dataLayer`; the GTM container must have a Custom Event trigger and a GA4 Event tag (steps in README). Set the ID as a Vercel Production env var.
 - Reports: summary sentence, daily average, largest expense, category donut, weekday chart, monthly and category breakdowns.
 - Settings (tabs): Categories, Backup & import, Account (edit full name, sign out on phones/installed app, delete account with type-DELETE confirmation).
 - Sign out placement is pure CSS: sidebar bottom account block in a normal browser; Settings → Account when `(display-mode: standalone)` or width ≤ 760px.
@@ -56,7 +57,7 @@ The user selected Supabase as the cloud source of truth. Do not create test tran
 
 ## Verification state
 
-- 18 test files, 40 tests pass (`npm test`); `npm run lint` and `npm run build` pass. Tests use a real in-memory SQLite database with a fake Supabase client (`src/test-support/fake-supabase.ts`) and jsdom + Testing Library for components. The SQL functions are not tested outside a real Supabase project.
+- 19 test files, 43 tests pass (`npm test`); `npm run lint` and `npm run build` pass. Tests use a real in-memory SQLite database with a fake Supabase client (`src/test-support/fake-supabase.ts`) and jsdom + Testing Library for components. The SQL functions are not tested outside a real Supabase project.
 - The user confirmed on real devices: the FD funding migration and delete-account work, and the iPad/phone layouts are fine after the responsive fixes.
 - UI was also checked in headless Chromium and WebKit with a fake signed-in session (route-mocked `finance_load_snapshot`, `finance_apply_changes`, and `/auth/v1/**`, plus a `sb-test-auth-token` localStorage entry and a dev server started with fake `SB_URL` / `SB_ANON_KEY`). Chromium cannot emulate `display-mode: standalone`; real installed-app mode was only simulated.
 

@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { Logo } from '../../components/Logo'
+import { trackPageView } from '../../lib/analytics'
 import { MAX_NAME_LENGTH } from '../../lib/user'
 
 export function AuthScreen({
@@ -15,6 +16,9 @@ export function AuthScreen({
   clearExternalError: () => void
 }) {
   const [creatingAccount, setCreatingAccount] = useState(false)
+  useEffect(() => {
+    trackPageView(creatingAccount ? '/sign-up' : '/sign-in', creatingAccount ? 'Create account' : 'Sign in')
+  }, [creatingAccount])
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
