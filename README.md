@@ -43,7 +43,7 @@ See the [Supabase Google sign-in guide](https://supabase.com/docs/guides/auth/so
 ## Deploy to Vercel with GitHub Actions
 
 1. Create a Vercel project for this repository. Link the project locally with the Vercel CLI (`vercel link`) to find its `orgId` and `projectId` in `.vercel/project.json`; `.vercel/` is ignored by Git.
-2. In the Vercel project settings, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` as Production environment variables. Use the Supabase project URL and publishable/anon key, never a service-role key.
+2. In the Vercel project settings, add `SB_URL` and `SB_ANON_KEY` as Production environment variables. Use the Supabase project URL and publishable/anon key, never a service-role key.
 3. In the GitHub repository, open Settings → Secrets and variables → Actions:
    - Add `VERCEL_TOKEN` as a repository secret. Create the token in your Vercel account settings.
    - Add `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` as repository variables, using the `orgId` and `projectId` from `.vercel/project.json`.

@@ -18,8 +18,8 @@ function isServiceRoleKey(key: string): boolean {
 }
 
 export function createSupabaseClient() {
-  const url = import.meta.env.VITE_SUPABASE_URL?.trim()
-  const key = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim()
+  const url = import.meta.env.SB_URL?.trim()
+  const key = import.meta.env.SB_ANON_KEY?.trim()
 
   if (!url || !key) {
     return {
