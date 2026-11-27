@@ -35,10 +35,10 @@ export function useAuthSession(supabase: SupabaseClient | null) {
     }
   }, [supabase])
 
-  /** Resolves to the sign-out error, if any. */
-  async function signOut(): Promise<Error | null> {
+  /** Resolves to the sign-out error, if any. `local` only clears this browser's session (the server session is already gone after account deletion). */
+  async function signOut(options?: { local?: boolean }): Promise<Error | null> {
     if (!supabase) return null
-    const { error } = await supabase.auth.signOut()
+    const { error } = await supabase.auth.signOut(options?.local ? { scope: 'local' } : undefined)
     return error
   }
 

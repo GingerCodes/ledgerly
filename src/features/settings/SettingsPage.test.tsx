@@ -26,7 +26,7 @@ const finance: FinanceContextValue = {
 }
 
 function renderSettings() {
-  return render(<FinanceContext.Provider value={finance}><SettingsPage /></FinanceContext.Provider>)
+  return render(<FinanceContext.Provider value={finance}><SettingsPage onAccountDeleted={async () => null} /></FinanceContext.Provider>)
 }
 
 describe('SettingsPage', () => {
@@ -40,5 +40,8 @@ describe('SettingsPage', () => {
     expect(screen.getByRole('tab', { name: 'Backup & import' }).getAttribute('aria-selected')).toBe('true')
     expect(screen.getByText('Take your data with you')).toBeTruthy()
     expect(screen.queryAllByText('Food')).toHaveLength(0)
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Account' }))
+    expect(screen.getByRole('button', { name: 'Delete my account' })).toBeTruthy()
   })
 })

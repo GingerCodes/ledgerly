@@ -1,22 +1,26 @@
 import { useState } from 'react'
 import { BackupPage } from '../backup/BackupPage'
 import { CategoriesPage } from '../categories/CategoriesPage'
+import { DeleteAccountPanel } from './DeleteAccountPanel'
 
 const tabs = [
-  { id: 'categories', label: 'Categories', Panel: CategoriesPage },
-  { id: 'backups', label: 'Backup & import', Panel: BackupPage },
+  { id: 'categories', label: 'Categories' },
+  { id: 'backups', label: 'Backup & import' },
+  { id: 'account', label: 'Account' },
 ] as const
 
 type TabId = typeof tabs[number]['id']
 
-export function SettingsPage() {
+export function SettingsPage({ onAccountDeleted }: {
+  /** Ends the session after the account has been deleted. */
+  onAccountDeleted: () => Promise<Error | null>
+}) {
   const [tab, setTab] = useState<TabId>('categories')
-  const { Panel } = tabs.find((item) => item.id === tab) ?? tabs[0]
 
   return (
     <>
       <section className="page-heading">
-        <div><p className="eyebrow">PREFERENCES</p><h1>Settings</h1><p className="page-subtitle">Organize your categories and keep your data safe.</p></div>
+        <div><p className="eyebrow">PREFERENCES</p><h1>Settings</h1><p className="page-subtitle">Organize your categories, keep your data safe and manage your account.</p></div>
       </section>
       <div className="settings-tabs" role="tablist" aria-label="Settings">
         {tabs.map(({ id, label }) => (
@@ -24,7 +28,9 @@ export function SettingsPage() {
         ))}
       </div>
       <div id="settings-panel" className="settings-panel" role="tabpanel" aria-labelledby={`settings-tab-${tab}`}>
-        <Panel />
+        {tab === 'categories' && <CategoriesPage />}
+        {tab === 'backups' && <BackupPage />}
+        {tab === 'account' && <DeleteAccountPanel onShowBackup={() => setTab('backups')} onDeleted={onAccountDeleted} />}
       </div>
     </>
   )
