@@ -666,3 +666,5 @@ body { font-size: 16px; line-height: 1.55; }
 .report-weekday-chart span { display: block; width: 100%; min-height: 2px; border-radius: 6px 6px 0 0; background: #8fb59b; }
 .report-weekday-chart .peak span { background: #245c48; }
 .report-weekday-chart small { color: #526258; font-size: 12px; }
+
+.update-banner { position: fixed; z-index: 1000; right: 16px; bottom: 16px; left: 16px; display: flex; max-width: 420px; align-items: center; justify-content: space-between; gap: 12px; margin-left: auto; padding: 12px 14px; border: 1px solid #cfe0d3; border-radius: 10px; color: #20332c; background: #eef6f0; box-shadow: 0 8px 24px rgba(32, 51, 44, .18); font-size: 13px; font-weight: 600; }
