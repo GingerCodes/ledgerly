@@ -49,14 +49,10 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Pull Vercel project settings
-        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-
-      - name: Build for production
-        run: vercel build --prod --token="$VERCEL_TOKEN"
-
+      # Build on Vercel, not here: `vercel pull` cannot read Sensitive env vars (SB_URL, SB_ANON_KEY)
+      # and would bake "[SENSITIVE]" placeholders into the bundle.
       - name: Deploy to Vercel
-        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+        run: vercel deploy --prod --token="$VERCEL_TOKEN"
 
       - name: Create release tag
         env:
