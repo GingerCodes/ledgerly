@@ -16,7 +16,7 @@ export function CategoriesPage() {
 
   return (
             <>
-              <section className="page-heading"><div><p className="eyebrow">MAKE SENSE OF SPENDING</p><h1>Categories</h1><p className="page-subtitle">Organize expenses into a hierarchy that works for you.</p></div><button className="button button-primary" onClick={() => setCategoryForm(null)}><Plus size={16} /> Add category</button></section>
+              <section className="page-heading"><div><p className="eyebrow">MAKE SENSE OF SPENDING</p><h2>Categories</h2><p className="page-subtitle">Organize expenses into a hierarchy that works for you.</p></div><button className="button button-primary" onClick={() => setCategoryForm(null)}><Plus size={16} /> Add category</button></section>
               {categoryForm !== undefined && <CategoryForm key={categoryForm?.id ?? 'new-category'} categories={categories} category={categoryForm} onCancel={() => setCategoryForm(undefined)} onSave={createCategory} />}
               <section className="panel category-panel">
                 {categories.map((category) => <div className={`category-row ${!category.active ? 'inactive-category' : ''}`} key={category.id}>
