@@ -2,16 +2,18 @@ import { useState } from 'react'
 import { Download, Plus, Search } from 'lucide-react'
 import { type Transaction, type TransactionInput } from '../../domain/models'
 import { useFinance, useFinanceQuery } from '../../app/finance-context'
-import { CURRENT_YEAR } from '../../lib/dates'
+import { makePeriod, periodYearOptions, type Period, type PeriodMode } from '../../lib/period'
+import { PeriodToggle } from '../../components/PeriodToggle'
 import { downloadFile } from '../../lib/format'
 import { exportTransactionsCsv } from '../../data/transactions-csv'
 import { EmptyState } from '../../components/EmptyState'
 import { TransactionTable } from '../../components/TransactionTable'
 import { TransactionForm } from './TransactionForm'
 
-export function TransactionsPage({ year, onYearChange, transactionForm, onOpenForm, onCloseForm, onSave }: {
-  year: number
+export function TransactionsPage({ period, onYearChange, onModeChange, transactionForm, onOpenForm, onCloseForm, onSave }: {
+  period: Period
   onYearChange: (year: number) => void
+  onModeChange: (mode: PeriodMode) => void
   /** undefined = form closed, null = new transaction, otherwise the transaction being edited. */
   transactionForm: Transaction | null | undefined
   onOpenForm: (transaction: Transaction | null) => void
@@ -20,13 +22,14 @@ export function TransactionsPage({ year, onYearChange, transactionForm, onOpenFo
 }) {
   const { database, accounts, categories, showSuccess, showError } = useFinance()
   const [transactionSearch, setTransactionSearch] = useState('')
-  const transactions = useFinanceQuery((db) => db.getTransactions(year, transactionSearch), [year, transactionSearch])
+  const transactions = useFinanceQuery((db) => db.getTransactions(period.startDate, period.endDate, transactionSearch), [period.startDate, period.endDate, transactionSearch])
 
   function exportYearCsv() {
     try {
-      const csv = exportTransactionsCsv(database.getTransactions(year))
-      downloadFile(`transactions-${year}.csv`, new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-      showSuccess(`${year} transactions exported. Account numbers are not included.`)
+      const csv = exportTransactionsCsv(database.getTransactions(period.startDate, period.endDate))
+      const fileLabel = period.mode === 'financial' ? `fy${period.year}-${String(period.year + 1).slice(2)}` : String(period.year)
+      downloadFile(`transactions-${fileLabel}.csv`, new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+      showSuccess(`${period.label} transactions exported. Account numbers are not included.`)
     } catch (error) {
       showError(error)
     }
@@ -42,13 +45,14 @@ export function TransactionsPage({ year, onYearChange, transactionForm, onOpenFo
               <section className="panel table-panel">
                 <div className="list-toolbar">
                   <div className="list-title"><h2>All transactions</h2><span className="count-pill">{transactions.length}</span></div>
+                  <PeriodToggle mode={period.mode} onChange={onModeChange} />
                   <div className="toolbar-controls">
                     <label className="search-field"><Search size={16} /><input value={transactionSearch} onChange={(event) => setTransactionSearch(event.target.value)} placeholder="Search descriptions" /></label>
-                    <select className="year-select" aria-label="Transaction year" value={year} onChange={(event) => onYearChange(Number(event.target.value))}>{Array.from({ length: 10 }, (_, index) => CURRENT_YEAR - index).map((value) => <option key={value} value={value}>{value}</option>)}</select>
-                    <button className="button button-secondary" onClick={exportYearCsv}><Download size={15} /> Export {year}</button>
+                    <select className="year-select" aria-label="Period" value={period.year} onChange={(event) => onYearChange(Number(event.target.value))}>{periodYearOptions(period.mode).map((value) => <option key={value} value={value}>{makePeriod(period.mode, value).label}</option>)}</select>
+                    <button className="button button-secondary" onClick={exportYearCsv}><Download size={15} /> Export {period.label}</button>
                   </div>
                 </div>
-                {transactions.length ? <TransactionTable transactions={transactions} accounts={accounts} categories={categories} onEdit={(item) => onOpenForm(item)} /> : <EmptyState>No transactions found for this year.</EmptyState>}
+                {transactions.length ? <TransactionTable transactions={transactions} accounts={accounts} categories={categories} onEdit={(item) => onOpenForm(item)} /> : <EmptyState>No transactions found for this period.</EmptyState>}
               </section>
             </>
   )

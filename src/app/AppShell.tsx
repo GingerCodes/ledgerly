@@ -11,7 +11,7 @@ import { useExpenseReport } from '../features/reports/useExpenseReport'
 import { SettingsPage } from '../features/settings/SettingsPage'
 import { TransactionForm } from '../features/transactions/TransactionForm'
 import { TransactionsPage } from '../features/transactions/TransactionsPage'
-import { CURRENT_YEAR } from '../lib/dates'
+import { currentPeriodYear, loadPeriodMode, makePeriod, savePeriodMode, type PeriodMode } from '../lib/period'
 import { appVersion } from '../lib/version'
 import { useFinance, useFinanceQuery } from './finance-context'
 import { sections, type Section } from './navigation'
@@ -28,12 +28,20 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }:
 }) {
   const { database, accounts, categories, notice, clearNotice, runAction, showError } = useFinance()
   const [section, setSection] = useState<Section>('overview')
-  const [year, setYear] = useState(CURRENT_YEAR)
+  const [mode, setMode] = useState<PeriodMode>(loadPeriodMode)
+  const [year, setYear] = useState(() => currentPeriodYear(loadPeriodMode()))
+  const period = makePeriod(mode, year)
   // undefined = form closed, null = new transaction, otherwise the transaction being edited
   const [transactionForm, setTransactionForm] = useState<Transaction | null | undefined>(undefined)
-  const report = useExpenseReport()
-  const overviewTransactions = useFinanceQuery((db) => db.getTransactions(year), [year])
+  const report = useExpenseReport(mode)
+  const overviewTransactions = useFinanceQuery((db) => db.getTransactions(period.startDate, period.endDate), [period.startDate, period.endDate])
   const activeSection = sections.find((item) => item.id === section)
+
+  function changeMode(next: PeriodMode) {
+    savePeriodMode(next)
+    setMode(next)
+    setYear(currentPeriodYear(next))
+  }
 
   async function saveTransaction(value: TransactionInput, reason: string, keepOpen: boolean) {
     await runAction(() => database.saveTransaction(value, reason), value.id ? 'Transaction updated.' : 'Transaction added.')
@@ -83,8 +91,8 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }:
 
         <main className="page-content">
           <Notice error={notice.error} success={notice.success} />
-          {section === 'overview' && <OverviewPage year={year} onYearChange={setYear} onNavigate={setSection} onEditTransaction={setTransactionForm} />}
-          {section === 'transactions' && <TransactionsPage year={year} onYearChange={setYear} transactionForm={transactionForm} onOpenForm={setTransactionForm} onCloseForm={() => setTransactionForm(undefined)} onSave={saveTransaction} />}
+          {section === 'overview' && <OverviewPage period={period} onYearChange={setYear} onModeChange={changeMode} onNavigate={setSection} onEditTransaction={setTransactionForm} />}
+          {section === 'transactions' && <TransactionsPage period={period} onYearChange={setYear} onModeChange={changeMode} transactionForm={transactionForm} onOpenForm={setTransactionForm} onCloseForm={() => setTransactionForm(undefined)} onSave={saveTransaction} />}
           {section === 'reports' && <ReportsPage report={report} onEditTransaction={(item) => { setSection('transactions'); setTransactionForm(item) }} />}
           {section === 'accounts' && <AccountsPage />}
           {section === 'deposits' && <DepositsPage />}
