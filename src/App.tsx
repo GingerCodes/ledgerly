@@ -44,7 +44,7 @@ import { FinanceDatabase } from './data/finance-database'
 import { supabaseSetup } from './data/supabase-client'
 import { copyToArrayBuffer, decryptBackup, encryptBackup } from './data/encrypted-backup'
 import { exportTransactionsCsv, parseTransactionsCsv } from './data/transactions-csv'
-import { summarizeExpenseReport } from './domain/reports'
+import { reportInsights, summarizeExpenseReport } from './domain/reports'
 
 type Section = 'overview' | 'transactions' | 'reports' | 'accounts' | 'deposits' | 'categories' | 'backups'
 type ExpenseReportFilters = {
@@ -62,6 +62,8 @@ const REPORT_MONTH_FORMATTER = new Intl.DateTimeFormat('en-IN', {
   year: 'numeric',
   timeZone: 'UTC',
 })
+const REPORT_COLORS = ['#245c48', '#589368', '#c9a227', '#b4533f', '#5b7db1', '#b8c2bb']
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const ALL_CATEGORIES = 'all'
 const UNCATEGORIZED = 'uncategorized'
 
@@ -227,15 +229,17 @@ function EmptyState({ children }: { children: string }) {
 function TransactionForm({
   accounts,
   categories,
+  transactions,
   transaction,
   onCancel,
   onSave,
 }: {
   accounts: Account[]
   categories: Category[]
+  transactions: Transaction[]
   transaction: Transaction | null
   onCancel: () => void
-  onSave: (value: TransactionInput, reason: string) => Promise<void>
+  onSave: (value: TransactionInput, reason: string, keepOpen: boolean) => Promise<void>
 }) {
   const [type, setType] = useState<TransactionInput['type']>(transaction?.type ?? 'expense')
   const [date, setDate] = useState(transaction?.date ?? todayIso())
@@ -244,11 +248,29 @@ function TransactionForm({
   const [accountId, setAccountId] = useState(transaction?.accountId ?? 'CASH')
   const [fromAccountId, setFromAccountId] = useState(transaction?.fromAccountId ?? 'CASH')
   const [toAccountId, setToAccountId] = useState(transaction?.toAccountId ?? '')
-  const [categoryId, setCategoryId] = useState(transaction?.categoryId ?? '')
+  const [categoryText, setCategoryText] = useState(transaction?.categoryId ? categoryPath(transaction.categoryId, categories) : '')
+  const categoryOptions = categories
+    .filter((category) => category.active || category.id === transaction?.categoryId)
+    .map((category) => ({ id: category.id, label: categoryPath(category.id, categories) }))
+  const categoryId = categoryOptions.find((option) => option.label === categoryText)?.id ?? ''
   const [notes, setNotes] = useState(transaction?.notes ?? '')
   const [reason, setReason] = useState('')
   const [formError, setFormError] = useState('')
   const [saving, setSaving] = useState(false)
+  const descriptionRef = useRef<HTMLInputElement>(null)
+  const recentDescriptions = useMemo(() => [...new Set(transactions.map((item) => item.description))].slice(0, 50), [transactions])
+
+  // Fill the category from the latest transaction with the same description, only when the field is still empty.
+  const changeDescription = (value: string) => {
+    setDescription(value)
+    if (type === 'transfer' || categoryText) return
+    const key = value.trim().toLowerCase()
+    const match = transactions
+      .filter((item) => item.categoryId && item.description.trim().toLowerCase() === key)
+      .sort((a, b) => b.date.localeCompare(a.date))[0]
+    const option = match && categoryOptions.find((item) => item.id === match.categoryId)
+    if (option) setCategoryText(option.label)
+  }
 
   const chooseType = (nextType: TransactionInput['type']) => {
     setType(nextType)
@@ -258,7 +280,7 @@ function TransactionForm({
       if (nextType === 'expense') setAccountId('CASH')
     } else {
       setAccountId('')
-      setCategoryId('')
+      setCategoryText('')
       setFromAccountId('CASH')
       setToAccountId(accounts.find((account) => account.id !== 'CASH')?.id ?? '')
     }
@@ -266,7 +288,12 @@ function TransactionForm({
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    const keepOpen = (event.nativeEvent as SubmitEvent).submitter?.getAttribute('name') === 'again'
     setFormError('')
+    if (type !== 'transfer' && categoryText && !categoryId) {
+      setFormError('Pick a category from the list, or clear the field for Uncategorized.')
+      return
+    }
     setSaving(true)
     try {
       await onSave({
@@ -280,7 +307,14 @@ function TransactionForm({
         amountPaise: parseRupeesToPaise(amount),
         categoryId: type === 'transfer' || !categoryId ? null : categoryId,
         notes,
-      }, reason)
+      }, reason, keepOpen)
+      if (keepOpen) {
+        setDescription('')
+        setAmount('')
+        setNotes('')
+        setCategoryText('')
+        descriptionRef.current?.focus()
+      }
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Could not save this transaction.')
     } finally {
@@ -289,7 +323,7 @@ function TransactionForm({
   }
 
   return (
-    <form className="form-card" onSubmit={submit}>
+    <form className="form-card" onSubmit={submit} onKeyDown={(event) => { if (event.key === 'Escape') onCancel() }}>
       <div className="form-heading">
         <div>
           <p className="eyebrow">{transaction ? 'Update entry' : 'New entry'}</p>
@@ -299,25 +333,30 @@ function TransactionForm({
       </div>
       {formError && <p className="form-error" role="alert">{formError}</p>}
       <div className="form-grid">
-        <label>
-          Transaction type
-          <select value={type} onChange={(event) => chooseType(event.target.value as TransactionInput['type'])}>
-            <option value="expense">Expense</option>
-            <option value="income">Income</option>
-            <option value="transfer">Transfer</option>
-          </select>
-        </label>
+        <div className="span-two segmented-field">
+          <span id="transaction-type-label">Transaction type</span>
+          <div className="segmented" role="radiogroup" aria-labelledby="transaction-type-label">
+            {(['expense', 'income', 'transfer'] as const).map((option) => (
+              <button key={option} type="button" role="radio" aria-checked={type === option} className={type === option ? `selected ${option}` : ''} onClick={() => chooseType(option)}>
+                {option[0].toUpperCase() + option.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
         <label>
           Date
           <input required type="date" value={date} onChange={(event) => setDate(event.target.value)} />
         </label>
         <label>
           Description
-          <input required maxLength={160} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What was this for?" />
+          <input ref={descriptionRef} list="description-options" required autoFocus={!transaction} autoComplete="off" maxLength={160} value={description} onChange={(event) => changeDescription(event.target.value)} placeholder="What was this for?" />
+          <datalist id="description-options">
+            {recentDescriptions.map((item) => <option key={item} value={item} />)}
+          </datalist>
         </label>
         <label>
           Amount (INR)
-          <input required inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0.00" />
+          <input required inputMode="decimal" autoComplete="off" pattern="[0-9]*\.?[0-9]{0,2}" title="Numbers only, up to 2 decimals (e.g. 250 or 99.50)" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0.00" />
         </label>
         {type === 'transfer' ? (
           <>
@@ -353,12 +392,10 @@ function TransactionForm({
         {type !== 'transfer' && (
           <label>
             Category
-            <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
-              <option value="">Uncategorized</option>
-              {categories.filter((category) => category.active || category.id === transaction?.categoryId).map((category) => (
-                <option key={category.id} value={category.id}>{categoryPath(category.id, categories)}</option>
-              ))}
-            </select>
+            <input list="category-options" autoComplete="off" onFocus={(event) => event.currentTarget.select()} value={categoryText} placeholder="Uncategorized — type to search" onChange={(event) => setCategoryText(event.target.value)} />
+            <datalist id="category-options">
+              {categoryOptions.map((option) => <option key={option.id} value={option.label} />)}
+            </datalist>
           </label>
         )}
         <label className="span-two">
@@ -372,10 +409,11 @@ function TransactionForm({
           </label>
         )}
       </div>
-      <div className="form-actions">
+      <div className="form-actions" style={{ flexDirection: 'row-reverse', gap: 8 }}>
         <button className="button button-primary" disabled={saving} type="submit">
           {saving ? 'Saving…' : transaction ? 'Save changes' : 'Add transaction'}
         </button>
+        {!transaction && <button className="button button-secondary" disabled={saving} type="submit" name="again">Save &amp; add another</button>}
       </div>
     </form>
   )
@@ -753,14 +791,24 @@ function App() {
     .map((item) => ({ ...item, label: categoryPath(item.categoryId, categories) }))
     .sort((left, right) => right.amountPaise - left.amountPaise) ?? []
   const reportSummary = summarizeExpenseReport(reportTransactions, categories)
+  const insights = reportFilters ? reportInsights(reportTransactions, reportFilters.startDate, reportFilters.endDate) : null
+  // Top 5 categories get their own colour; the rest are lumped into one grey slice.
+  const categorySlices = reportSummary.categoryBreakdown.map((item, index) => ({ ...item, color: REPORT_COLORS[Math.min(index, 5)] }))
+  const donut = categorySlices.map((item, index) => {
+    const before = categorySlices.slice(0, index).reduce((sum, other) => sum + other.amountPaise, 0)
+    const total = reportSummary.totalPaise || 1
+    return `${item.color} ${(before / total) * 100}% ${((before + item.amountPaise) / total) * 100}%`
+  }).join(', ')
+  const weekdayTotals = insights?.weekdayTotalsPaise ?? []
+  const busiestWeekday = weekdayTotals.indexOf(Math.max(...weekdayTotals, 1))
   const largestMonthlyExpense = Math.max(
     ...reportSummary.monthlyBreakdown.map((month) => month.amountPaise),
     1,
   )
 
-  async function createTransaction(value: TransactionInput, reason: string) {
+  async function createTransaction(value: TransactionInput, reason: string, keepOpen: boolean) {
     await runAction(() => database!.saveTransaction(value, reason), value.id ? 'Transaction updated.' : 'Transaction added.')
-    setTransactionForm(undefined)
+    if (!keepOpen) setTransactionForm(undefined)
   }
 
   async function createAccount(value: Parameters<FinanceDatabase['saveAccount']>[0]) {
@@ -970,7 +1018,7 @@ function App() {
                 <div><p className="eyebrow">DAILY MONEY MOVEMENT</p><h1>Transactions</h1><p className="page-subtitle">Track spending, income, and transfers between accounts.</p></div>
                 <button className="button button-primary" onClick={() => setTransactionForm(null)}><Plus size={16} /> Add transaction</button>
               </section>
-              {transactionForm !== undefined && <TransactionForm key={transactionForm?.id ?? 'new-transaction'} transaction={transactionForm} accounts={accounts} categories={categories} onCancel={() => setTransactionForm(undefined)} onSave={createTransaction} />}
+              {transactionForm !== undefined && <TransactionForm key={transactionForm?.id ?? 'new-transaction'} transaction={transactionForm} accounts={accounts} categories={categories} transactions={transactions} onCancel={() => setTransactionForm(undefined)} onSave={createTransaction} />}
               <section className="panel table-panel">
                 <div className="list-toolbar">
                   <div className="list-title"><h2>All transactions</h2><span className="count-pill">{transactions.length}</span></div>
@@ -1036,10 +1084,22 @@ function App() {
                     </div>
                     <button className="button button-secondary" onClick={exportExpenseReport}><Download size={16} /> Export report CSV</button>
                   </div>
+                  {insights && reportSummary.transactionCount > 0 && (
+                    <section className="report-insight">
+                      <ChartNoAxesCombined size={20} aria-hidden="true" />
+                      <p>
+                        You spent <b>{formatRupees(reportSummary.totalPaise)}</b> over {insights.days} day{insights.days === 1 ? '' : 's'} — about <b>{formatRupees(insights.dailyAveragePaise)}</b> a day.
+                        {' '}<b>{categorySlices[0].categoryPath}</b> was the biggest share at {Math.round((categorySlices[0].amountPaise / reportSummary.totalPaise) * 100)}%.
+                        {' '}Spending peaks on <b>{WEEKDAYS[busiestWeekday]}s</b>, and your largest expense was <b>{formatRupees(insights.largest!.amountPaise)}</b> ({insights.largest!.description}, {insights.largest!.date}).
+                      </p>
+                    </section>
+                  )}
                   <section className="report-metrics">
                     <article className="report-metric-card"><span>Total expenses</span><strong>{formatRupees(reportSummary.totalPaise)}</strong></article>
                     <article className="report-metric-card"><span>Transactions</span><strong>{reportSummary.transactionCount.toLocaleString('en-IN')}</strong></article>
                     <article className="report-metric-card"><span>Average per transaction</span><strong>{formatRupees(reportSummary.transactionCount ? Math.round(reportSummary.totalPaise / reportSummary.transactionCount) : 0)}</strong></article>
+                    <article className="report-metric-card"><span>Daily average</span><strong>{formatRupees(insights?.dailyAveragePaise ?? 0)}</strong></article>
+                    <article className="report-metric-card"><span>Largest expense</span><strong>{formatRupees(insights?.largest?.amountPaise ?? 0)}</strong></article>
                   </section>
                   <div className="report-breakdown-grid">
                     <section className="panel report-breakdown">
@@ -1062,16 +1122,32 @@ function App() {
                     <section className="panel report-breakdown">
                       <div className="panel-heading"><div><p className="eyebrow">CATEGORY DETAIL</p><h2>Where it went</h2></div></div>
                       {reportSummary.categoryBreakdown.length ? (
-                        <div className="report-category-list">
-                          {reportSummary.categoryBreakdown.map((category) => (
-                            <div className="report-category-row" key={category.categoryId ?? UNCATEGORIZED}>
-                              <span>{category.categoryPath}<small>{category.transactionCount} transaction{category.transactionCount === 1 ? '' : 's'}</small></span>
-                              <strong>{formatRupees(category.amountPaise)}</strong>
+                        <>
+                          <div className="report-donut" style={{ background: `conic-gradient(${donut})` }} role="img" aria-label="Share of spending by category"><span>{formatRupees(reportSummary.totalPaise)}</span></div>
+                          <div className="report-category-list">
+                            {categorySlices.map((category) => (
+                              <div className="report-category-row" key={category.categoryId ?? UNCATEGORIZED}>
+                                <span><i className="report-dot" style={{ background: category.color }} />{category.categoryPath}<small>{category.transactionCount} transaction{category.transactionCount === 1 ? '' : 's'} · {Math.round((category.amountPaise / reportSummary.totalPaise) * 100)}%</small></span>
+                                <strong>{formatRupees(category.amountPaise)}</strong>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      ) : <EmptyState>No category totals to show.</EmptyState>}
+                    </section>
+                    {reportSummary.transactionCount > 0 && (
+                      <section className="panel report-breakdown report-weekdays">
+                        <div className="panel-heading"><div><p className="eyebrow">HABITS</p><h2>Spending by weekday</h2></div></div>
+                        <div className="report-weekday-chart">
+                          {weekdayTotals.map((amount, day) => (
+                            <div key={day} className={day === busiestWeekday ? 'peak' : ''} title={`${WEEKDAYS[day]}: ${formatRupees(amount)}`}>
+                              <span style={{ height: `${(amount / Math.max(...weekdayTotals, 1)) * 100}%` }} />
+                              <small>{WEEKDAYS[day].slice(0, 3)}</small>
                             </div>
                           ))}
                         </div>
-                      ) : <EmptyState>No category totals to show.</EmptyState>}
-                    </section>
+                      </section>
+                    )}
                   </div>
                   <section className="panel report-transactions">
                     <div className="panel-heading"><div><p className="eyebrow">MATCHING RECORDS</p><h2>Expense transactions</h2></div><span className="count-pill">{reportSummary.transactionCount}</span></div>
@@ -1202,7 +1278,7 @@ function App() {
       {transactionForm !== undefined && section !== 'transactions' && section !== 'overview' && null}
       {transactionForm !== undefined && section === 'overview' && (
         <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setTransactionForm(undefined) }}>
-          <div className="modal-content"><TransactionForm transaction={transactionForm} accounts={accounts} categories={categories} onCancel={() => setTransactionForm(undefined)} onSave={createTransaction} /></div>
+          <div className="modal-content"><TransactionForm transaction={transactionForm} accounts={accounts} categories={categories} transactions={transactions} onCancel={() => setTransactionForm(undefined)} onSave={createTransaction} /></div>
         </div>
       )}
     </div>
