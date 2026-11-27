@@ -88,6 +88,7 @@ describe('fixed-deposit estimates', () => {
       interestType: 'simple',
       compoundsPerYear: 1,
       linkedAccountId: null,
+      fundingAccountId: null,
       maturityInstruction: '',
       status: 'active',
       notes: '',
