@@ -492,6 +492,7 @@ function DepositForm({
   const [interestType, setInterestType] = useState<FixedDeposit['interestType']>(deposit?.interestType ?? 'compound')
   const [compoundsPerYear, setCompoundsPerYear] = useState(String(deposit?.compoundsPerYear ?? 4))
   const [linkedAccountId, setLinkedAccountId] = useState(deposit?.linkedAccountId ?? '')
+  const [fundingAccountId, setFundingAccountId] = useState(deposit?.fundingAccountId ?? '')
   const [maturityInstruction, setMaturityInstruction] = useState(deposit?.maturityInstruction ?? '')
   const [notes, setNotes] = useState(deposit?.notes ?? '')
   const [formError, setFormError] = useState('')
@@ -519,6 +520,7 @@ function DepositForm({
         interestType,
         compoundsPerYear: compounding,
         linkedAccountId: linkedAccountId || null,
+        fundingAccountId: fundingAccountId || null,
         maturityInstruction,
         status: deposit?.status ?? 'active',
         notes,
@@ -536,6 +538,7 @@ function DepositForm({
         interestType,
         compoundsPerYear: compounding,
         linkedAccountId: linkedAccountId || null,
+        fundingAccountId: fundingAccountId || null,
         maturityInstruction,
         notes,
       })
@@ -564,6 +567,13 @@ function DepositForm({
           </select>
         </label>
         {interestType === 'compound' && <label>Compounds per year<input required min={1} max={365} type="number" value={compoundsPerYear} onChange={(event) => setCompoundsPerYear(event.target.value)} /></label>}
+        <label>Funded from (savings account)
+          <select required={!deposit} value={fundingAccountId} onChange={(event) => setFundingAccountId(event.target.value)}>
+            <option value="">{deposit ? 'Not tracked' : 'Select account'}</option>
+            {accounts.filter((account) => account.type === 'savings' && (account.status === 'active' || account.id === deposit?.fundingAccountId)).map((account) => <option key={account.id} value={account.id}>{accountLabel(account)} — {formatRupees(account.currentBalancePaise)}</option>)}
+          </select>
+          <span className="field-hint">The principal is debited from this account.</span>
+        </label>
         <label>Linked maturity account
           <select value={linkedAccountId} onChange={(event) => setLinkedAccountId(event.target.value)}>
             <option value="">Not specified</option>
@@ -1216,7 +1226,7 @@ function App() {
                   <div className="deposit-card-head"><span className="metric-icon purple"><BriefcaseBusiness size={18} /></span><span className={`status-pill ${deposit.status === 'closed' ? 'status-closed' : matured ? 'status-matured' : 'status-active'}`}>{deposit.status === 'closed' ? 'Closed' : matured ? 'Matured' : 'Active'}</span></div>
                   <p className="eyebrow">{deposit.institution.toUpperCase()} · {maskAccountNumber(deposit.accountNumber)}</p>
                   <h2>{formatRupees(deposit.principalPaise)}</h2>
-                  <div className="deposit-details"><span>Rate <b>{(deposit.annualRateBasisPoints / 100).toFixed(2)}%</b></span><span>Matures <b>{deposit.maturityDate}</b></span></div>
+                  <div className="deposit-details"><span>Rate <b>{(deposit.annualRateBasisPoints / 100).toFixed(2)}%</b></span><span>Matures <b>{deposit.maturityDate}</b></span>{deposit.fundingAccountId && (() => { const source = accounts.find((item) => item.id === deposit.fundingAccountId); return source && <span>Funded from <b>{accountLabel(source)}</b></span> })()}</div>
                   <div className="deposit-estimate"><small>Estimated maturity value · not bank-confirmed</small><strong>{estimate}</strong></div>
                   <div className="deposit-actions"><button className="text-button" onClick={() => setDepositForm(deposit)}><Pencil size={14} /> Edit details</button>{deposit.status === 'active' && <button className="text-button danger-text" onClick={() => void runAction(() => database.closeFixedDeposit(deposit.id), 'Deposit marked as closed.').catch(() => undefined)}><Check size={14} /> Mark closed</button>}</div>
                 </article>

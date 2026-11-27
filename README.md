@@ -14,6 +14,7 @@ A private, cloud-backed PWA for recording INR expenses, income, transfers, savin
    ```
 
 5. Open Supabase SQL Editor and run [`supabase/migrations/20261127120000_finance_schema.sql`](./supabase/migrations/20261127120000_finance_schema.sql). It creates the finance tables, per-user RLS policies, and authenticated database functions.
+   Then run [`supabase/migrations/20261127130000_fd_funding_account.sql`](./supabase/migrations/20261127130000_fd_funding_account.sql). It adds the savings account that funds each fixed deposit (the principal is debited from it). Existing projects must run it before using this version, or saving deposits will fail.
 6. Install and start the app:
 
    ```powershell

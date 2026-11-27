@@ -68,6 +68,8 @@ export interface FixedDeposit {
   interestType: FixedDepositInterestType
   compoundsPerYear: number
   linkedAccountId: string | null
+  /** Savings account the principal was debited from; null for deposits created before this was tracked. */
+  fundingAccountId: string | null
   maturityInstruction: string
   status: 'active' | 'matured' | 'closed'
   notes: string
@@ -86,6 +88,7 @@ export interface FixedDepositInput {
   interestType: FixedDepositInterestType
   compoundsPerYear: number
   linkedAccountId: string | null
+  fundingAccountId: string | null
   maturityInstruction: string
   notes: string
 }

@@ -2,6 +2,7 @@ import initSqlJs, { type Database, type SqlValue } from 'sql.js'
 import wasmUrl from 'sql.js/dist/sql-wasm.wasm?url'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
+  accountLabel,
   isIsoDate,
   type Account,
   type BalanceSnapshot,
@@ -97,6 +98,7 @@ const schema = `
     interest_type TEXT NOT NULL CHECK (interest_type IN ('simple', 'compound')),
     compounds_per_year INTEGER NOT NULL CHECK (compounds_per_year BETWEEN 1 AND 365),
     linked_account_id TEXT REFERENCES accounts(id) ON DELETE SET NULL,
+    funding_account_id TEXT REFERENCES accounts(id) ON DELETE RESTRICT,
     maturity_instruction TEXT NOT NULL DEFAULT '',
     status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'matured', 'closed')),
     notes TEXT NOT NULL DEFAULT '',
@@ -226,6 +228,7 @@ function readFixedDeposit(row: SqlRow): FixedDeposit {
     interestType: readString(row, 'interest_type') as FixedDeposit['interestType'],
     compoundsPerYear: readInteger(row, 'compounds_per_year'),
     linkedAccountId: readNullableString(row, 'linked_account_id'),
+    fundingAccountId: readNullableString(row, 'funding_account_id'),
     maturityInstruction: readString(row, 'maturity_instruction'),
     status: readString(row, 'status') as FixedDeposit['status'],
     notes: readString(row, 'notes'),
@@ -336,7 +339,7 @@ function hydrateDatabase(database: Database, snapshot: CloudSnapshot): void {
   insertSnapshotRows(database, 'fixed_deposits', snapshot.fixed_deposits, [
     'id', 'institution', 'account_number', 'principal_paise', 'start_date', 'maturity_date',
     'annual_rate_basis_points', 'interest_type', 'compounds_per_year', 'linked_account_id',
-    'maturity_instruction', 'status', 'notes', 'created_at', 'updated_at',
+    'funding_account_id', 'maturity_instruction', 'status', 'notes', 'created_at', 'updated_at',
   ])
   insertSnapshotRows(database, 'balance_snapshots', snapshot.balance_snapshots, [
     'id', 'account_id', 'date', 'reported_balance_paise', 'source', 'notes', 'created_at',
@@ -611,7 +614,7 @@ export class FinanceDatabase {
   getAccounts(): Account[] {
     return this.rows(
       `SELECT a.*,
-        a.opening_balance_paise + COALESCE(SUM(
+        a.opening_balance_paise - COALESCE((SELECT SUM(f.principal_paise) FROM fixed_deposits f WHERE f.funding_account_id = a.id), 0) + COALESCE(SUM(
           CASE
             WHEN t.type = 'income' AND t.account_id = a.id THEN t.amount_paise
             WHEN t.type = 'expense' AND t.account_id = a.id THEN -t.amount_paise
@@ -691,7 +694,10 @@ export class FinanceDatabase {
   getBalanceSnapshots(): BalanceSnapshot[] {
     return this.rows(
       `SELECT s.*,
-        a.opening_balance_paise + COALESCE((
+        a.opening_balance_paise - COALESCE((
+          SELECT SUM(f.principal_paise) FROM fixed_deposits f
+          WHERE f.funding_account_id = s.account_id AND f.start_date <= s.date
+        ), 0) + COALESCE((
           SELECT SUM(
             CASE
               WHEN t.type = 'income' AND t.account_id = s.account_id THEN t.amount_paise
@@ -937,6 +943,14 @@ export class FinanceDatabase {
     const now = currentTime()
 
     return this.enqueueWrite(() => {
+      if (input.fundingAccountId) {
+        const funding = this.rows('SELECT type, status FROM accounts WHERE id = ?', [input.fundingAccountId])[0]
+        if (!funding || readString(funding, 'type') !== 'savings' || readString(funding, 'status') !== 'active') {
+          throw new Error('Choose an active savings account to fund this deposit.')
+        }
+      } else if (!input.id) {
+        throw new Error('Choose the savings account this deposit is funded from.')
+      }
       const existing = input.id
         ? this.rows('SELECT created_at FROM fixed_deposits WHERE id = ?', [id])[0]
         : undefined
@@ -946,8 +960,8 @@ export class FinanceDatabase {
         `INSERT INTO fixed_deposits
           (id, institution, account_number, principal_paise, start_date, maturity_date,
            annual_rate_basis_points, interest_type, compounds_per_year, linked_account_id,
-           maturity_instruction, status, notes, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?)
+           funding_account_id, maturity_instruction, status, notes, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?)
          ON CONFLICT(id) DO UPDATE SET
            institution = excluded.institution,
            account_number = excluded.account_number,
@@ -958,6 +972,7 @@ export class FinanceDatabase {
            interest_type = excluded.interest_type,
            compounds_per_year = excluded.compounds_per_year,
            linked_account_id = excluded.linked_account_id,
+           funding_account_id = excluded.funding_account_id,
            maturity_instruction = excluded.maturity_instruction,
            notes = excluded.notes,
            updated_at = excluded.updated_at`,
@@ -972,12 +987,18 @@ export class FinanceDatabase {
           input.interestType,
           input.compoundsPerYear,
           input.linkedAccountId,
+          input.fundingAccountId,
           input.maturityInstruction.trim(),
           input.notes.trim(),
           createdAt,
           now,
         ],
       )
+      // shortcut: balance is checked as of today, not the FD start date; upgrade if backdated FDs matter.
+      const funding = input.fundingAccountId && this.getAccounts().find((account) => account.id === input.fundingAccountId)
+      if (funding && funding.currentBalancePaise < 0) {
+        throw new Error(`Not enough balance in ${accountLabel(funding)} to fund this deposit.`)
+      }
       return id
     })
   }
@@ -1096,6 +1117,10 @@ export class FinanceDatabase {
     try {
       restored = new this.sql.Database(bytes)
       restored.run('PRAGMA foreign_keys = ON')
+      // Backups made before FD funding was tracked lack this column.
+      if (!restored.exec('PRAGMA table_info(fixed_deposits)')[0]?.values.some((column) => column[1] === 'funding_account_id')) {
+        restored.run('ALTER TABLE fixed_deposits ADD COLUMN funding_account_id TEXT REFERENCES accounts(id) ON DELETE RESTRICT')
+      }
       verifyDatabase(restored)
     } catch (error) {
       restored?.close()
