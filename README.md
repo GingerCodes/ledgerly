@@ -52,7 +52,8 @@ Production is deployed only by the GitHub Action in [`.github/workflows/deploy-v
    - Add `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` as repository variables, using the `orgId` and `projectId` from `.vercel/project.json`.
 4. Merge to `main` to deploy. The workflow runs lint and tests, then runs `vercel deploy --prod` (Vercel builds the project), then creates a GitHub release tagged `vYYYY.MM.DD-<run number>`. A deploy runs for every merge, but a queued run is cancelled when a newer one is waiting; the newest run always contains all merged changes.
 5. The tag and commit are passed to the build as `VITE_RELEASE_TAG` and `VITE_COMMIT_SHA` and shown in the footer (for example `v2026.11.27-26 · 1d347f9`; local builds show `dev`).
-6. In Supabase Authentication URL Configuration, set the deployed app URL as the Site URL and allow the deployed URL as a redirect URL.
+6. In Supabase Authentication URL Configuration, set the deployed app URL as the Site URL and allow the deployed URL as a redirect URL. Google sign-in always returns to `/` (the app then redirects to `/overview`), so only the root URL needs to be on the allow list.
+   `vercel.json` rewrites every path that is not a file to `index.html`, which is what makes deep links such as `/settings/account` work on a refresh.
 7. Run any new SQL migration in Supabase **before** merging the change that needs it, because the merge deploys immediately.
 
 The workflow limits secrets to the steps that use them, does not persist git credentials after checkout, and pins the Vercel CLI version.
@@ -83,6 +84,7 @@ Page-view analytics is off unless you set `VITE_GTM_ID` to a Google Tag Manager 
 - Review period totals, category spending, account balances, and reported balance snapshots compared with recorded activity.
 - Export transactions as year-wise CSV and import validated CSV data. Existing transaction IDs are skipped during import.
 - Create and restore a full-database backup encrypted with AES-256-GCM and a passphrase.
+- Every screen has its own URL, so links, bookmarks, refresh and the browser's back and forward buttons work: `/overview`, `/transactions`, `/reports`, `/accounts`, `/deposits`, `/settings/categories`, `/settings/backups`, `/settings/account`. `/` and unknown paths go to `/overview`. The browser tab title follows the screen.
 - **Settings** groups three tabs: Categories, Backup & import, and Account. Account lets you update your full name, sign out (installed app and phones), and permanently delete your account and all its data; the same email can then register again as a brand-new account.
 - Install the app: a banner offers installation in a browser (native prompt on Chrome, Edge, and Android; Add to Home Screen steps on iOS) and is hidden in the installed app and for 30 days after "Not now". A "new version available" banner offers a reload after each deployment.
 - Layouts are responsive: on phones the bottom navigation fits all six sections and transaction tables become cards. Sign out and the signed-in name sit at the bottom of the sidebar in a browser, and in Settings → Account in the installed app and on phones.
@@ -92,9 +94,9 @@ See [PLAN.md](./PLAN.md) for the data model, workflows, and architecture, and [S
 ## Project structure
 
 ```text
-src/App.tsx            auth gate -> database gate -> <AppShell/>
-src/app/               AppShell (sidebar, top bar, pages), FinanceProvider and finance-context
-                       (useFinance, useFinanceQuery), useAuthSession, useFinanceDatabase, navigation
+src/App.tsx            auth gate -> database gate -> <AppShell/> (inside a BrowserRouter from main.tsx)
+src/app/               AppShell (sidebar, top bar, routes), FinanceProvider and finance-context
+                       (useFinance, useFinanceQuery), useAuthSession, useFinanceDatabase, navigation (paths, page titles)
 src/components/        shared UI: Notice, EmptyState, ComboBox, TransactionTable, Logo, InstallPrompt
 src/features/<name>/   one folder per area: auth, overview, transactions, reports, accounts,
                        deposits, categories, backup, settings (page, forms, panels)

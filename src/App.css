@@ -867,3 +867,6 @@ input[list]::-webkit-calendar-picker-indicator { display: none !important; }
 
 .check-row { display: flex !important; align-items: center; gap: 10px !important; }
 .check-row input { width: 20px !important; min-height: 20px !important; margin: 0; accent-color: #245c48; }
+
+/* Navigation items are links now: keep the button look */
+a.nav-item, a.brand { text-decoration: none; }

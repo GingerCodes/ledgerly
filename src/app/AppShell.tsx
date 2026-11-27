@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router'
 import { ChevronRight, LockKeyhole, LogOut, Plus } from 'lucide-react'
 import { type Transaction, type TransactionInput } from '../domain/models'
 import { Logo } from '../components/Logo'
@@ -15,7 +16,7 @@ import { currentPeriodYear, loadPeriodMode, makePeriod, savePeriodMode, type Per
 import { trackPageView } from '../lib/analytics'
 import { appVersion } from '../lib/version'
 import { useFinance, useFinanceQuery } from './finance-context'
-import { sections, type Section } from './navigation'
+import { pageTitle, sectionOf, sections, type Section } from './navigation'
 
 export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }: {
   /** Name for the top bar (falls back to the email). */
@@ -28,20 +29,28 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }:
   onUpdateName: (name: string) => Promise<Error | null>
 }) {
   const { database, accounts, categories, notice, clearNotice, runAction, showError } = useFinance()
-  const [section, setSection] = useState<Section>('overview')
+  const { pathname } = useLocation()
+  const navigate = useNavigate()
   const [mode, setMode] = useState<PeriodMode>(loadPeriodMode)
   const [year, setYear] = useState(() => currentPeriodYear(loadPeriodMode()))
   const period = makePeriod(mode, year)
-  // undefined = form closed, null = new transaction, otherwise the transaction being edited
-  const [transactionForm, setTransactionForm] = useState<Transaction | null | undefined>(undefined)
+  // The transaction form belongs to the screen it was opened on (null = new transaction, else the one being edited),
+  // so it disappears when you leave that screen, including with the browser's back button.
+  const [openForm, setOpenForm] = useState<{ transaction: Transaction | null; path: string } | null>(null)
+  const transactionForm = openForm?.path === pathname ? openForm.transaction : undefined
+  const showForm = (transaction: Transaction | null, path = pathname) => setOpenForm({ transaction, path })
+  const closeForm = () => setOpenForm(null)
   const report = useExpenseReport(mode)
   const overviewTransactions = useFinanceQuery((db) => db.getTransactions(period.startDate, period.endDate), [period.startDate, period.endDate])
-  const activeSection = sections.find((item) => item.id === section)
+  const activeSection = sections.find((item) => item.id === sectionOf(pathname))
 
-  // Settings reports its own tabs (/settings/<tab>), so it is skipped here to avoid counting it twice.
+  // One page view per real screen; paths that only redirect have no title and are skipped.
   useEffect(() => {
-    if (section !== 'settings') trackPageView(`/${section}`, activeSection?.label ?? section)
-  }, [section, activeSection?.label])
+    const title = pageTitle(pathname)
+    if (!title) return
+    trackPageView(pathname, title)
+    document.title = `${title} · Ledgerly`
+  }, [pathname])
 
   function changeMode(next: PeriodMode) {
     savePeriodMode(next)
@@ -51,7 +60,7 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }:
 
   async function saveTransaction(value: TransactionInput, reason: string, keepOpen: boolean) {
     await runAction(() => database.saveTransaction(value, reason), value.id ? 'Transaction updated.' : 'Transaction added.')
-    if (!keepOpen) setTransactionForm(undefined)
+    if (!keepOpen) closeForm()
   }
 
   async function signOut() {
@@ -62,16 +71,16 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }:
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <a className="brand" href="#" onClick={(event) => { event.preventDefault(); setSection('overview') }}>
+        <Link className="brand" to="/overview">
           <span className="brand-mark"><Logo /></span>
           <span><strong>Ledgerly</strong><small>PERSONAL FINANCE</small></span>
-        </a>
+        </Link>
         <p className="nav-caption">WORKSPACE</p>
         <nav className="side-nav" aria-label="Main navigation">
-          {sections.map(({ id, label, icon: Icon }) => (
-            <button key={id} type="button" className={`nav-item ${section === id ? 'selected' : ''}`} onClick={() => { setSection(id); setTransactionForm(undefined); clearNotice() }}>
-              <Icon size={18} strokeWidth={1.8} /><span>{label}</span>{section === id && <ChevronRight className="nav-chevron" size={15} />}
-            </button>
+          {sections.map(({ id, label, icon: Icon, path }) => (
+            <NavLink key={id} to={path} className={({ isActive }) => `nav-item ${isActive ? 'selected' : ''}`} onClick={() => { closeForm(); clearNotice() }}>
+              {({ isActive }) => <><Icon size={18} strokeWidth={1.8} /><span>{label}</span>{isActive && <ChevronRight className="nav-chevron" size={15} />}</>}
+            </NavLink>
           ))}
         </nav>
         <div className="sidebar-bottom">
@@ -91,25 +100,29 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }:
           <div className="mobile-brand"><span className="brand-mark"><Logo /></span> Ledgerly</div>
           <div className="breadcrumb">Finance <ChevronRight size={14} /> <strong>{activeSection?.label}</strong></div>
           <div className="topbar-right">
-            <button className="button button-primary top-add" onClick={() => { setSection('transactions'); setTransactionForm(null) }}><Plus size={16} /> Add transaction</button>
+            <button className="button button-primary top-add" onClick={() => { navigate('/transactions'); showForm(null, '/transactions') }}><Plus size={16} /> Add transaction</button>
           </div>
         </header>
 
         <main className="page-content">
           <Notice error={notice.error} success={notice.success} />
-          {section === 'overview' && <OverviewPage period={period} onYearChange={setYear} onModeChange={changeMode} onNavigate={setSection} onEditTransaction={setTransactionForm} />}
-          {section === 'transactions' && <TransactionsPage period={period} onYearChange={setYear} onModeChange={changeMode} transactionForm={transactionForm} onOpenForm={setTransactionForm} onCloseForm={() => setTransactionForm(undefined)} onSave={saveTransaction} />}
-          {section === 'reports' && <ReportsPage report={report} onEditTransaction={(item) => { setSection('transactions'); setTransactionForm(item) }} />}
-          {section === 'accounts' && <AccountsPage />}
-          {section === 'deposits' && <DepositsPage />}
-          {section === 'settings' && <SettingsPage fullName={fullName} email={email} onSaveName={onUpdateName} onSignOut={() => void signOut()} onAccountDeleted={() => onSignOut({ local: true })} />}
+          <Routes>
+            <Route path="/overview" element={<OverviewPage period={period} onYearChange={setYear} onModeChange={changeMode} onNavigate={(section: Section) => navigate(`/${section}`)} onEditTransaction={(transaction) => showForm(transaction)} />} />
+            <Route path="/transactions" element={<TransactionsPage period={period} onYearChange={setYear} onModeChange={changeMode} transactionForm={transactionForm} onOpenForm={showForm} onCloseForm={closeForm} onSave={saveTransaction} />} />
+            <Route path="/reports" element={<ReportsPage report={report} onEditTransaction={(item) => { navigate('/transactions'); showForm(item, '/transactions') }} />} />
+            <Route path="/accounts" element={<AccountsPage />} />
+            <Route path="/deposits" element={<DepositsPage />} />
+            <Route path="/settings" element={<Navigate to="/settings/categories" replace />} />
+            <Route path="/settings/:tab" element={<SettingsPage fullName={fullName} email={email} onSaveName={onUpdateName} onSignOut={() => void signOut()} onAccountDeleted={() => onSignOut({ local: true })} />} />
+            <Route path="*" element={<Navigate to="/overview" replace />} />
+          </Routes>
         </main>
         <footer className="app-footer"><span>Ledgerly · Personal Finance Tracker · <span title="Release and commit this build was made from">{appVersion}</span></span><span><LockKeyhole size={13} /> Stored in your private account</span></footer>
       </div>
 
-      {transactionForm !== undefined && section === 'overview' && (
-        <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setTransactionForm(undefined) }}>
-          <div className="modal-content"><TransactionForm transaction={transactionForm} accounts={accounts} categories={categories} transactions={overviewTransactions} onCancel={() => setTransactionForm(undefined)} onSave={saveTransaction} /></div>
+      {transactionForm !== undefined && pathname === '/overview' && (
+        <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) closeForm() }}>
+          <div className="modal-content"><TransactionForm transaction={transactionForm} accounts={accounts} categories={categories} transactions={overviewTransactions} onCancel={closeForm} onSave={saveTransaction} /></div>
         </div>
       )}
     </div>
