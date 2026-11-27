@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Wallet } from 'lucide-react'
+import { Logo } from './components/Logo'
 import { AppShell } from './app/AppShell'
 import { FinanceProvider } from './app/FinanceProvider'
 import { useAuthSession } from './app/useAuthSession'
@@ -9,7 +9,7 @@ import { AuthScreen } from './features/auth/AuthScreen'
 import './App.css'
 
 function Splash({ title, children }: { title: string; children: ReactNode }) {
-  return <main className="loading-screen"><div className="loading-mark"><Wallet size={28} /></div><h1>{title}</h1>{children}</main>
+  return <main className="loading-screen"><div className="loading-mark"><Logo /></div><h1>{title}</h1>{children}</main>
 }
 
 function App() {

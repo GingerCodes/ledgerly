@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { ChevronRight, LockKeyhole, LogOut, Plus, Wallet } from 'lucide-react'
+import { ChevronRight, LockKeyhole, LogOut, Plus } from 'lucide-react'
 import { type Transaction, type TransactionInput } from '../domain/models'
+import { Logo } from '../components/Logo'
 import { Notice } from '../components/Notice'
 import { AccountsPage } from '../features/accounts/AccountsPage'
 import { DepositsPage } from '../features/deposits/DepositsPage'
@@ -43,7 +44,7 @@ export function AppShell({ email, onSignOut }: {
     <div className="app-shell">
       <aside className="sidebar">
         <a className="brand" href="#" onClick={(event) => { event.preventDefault(); setSection('overview') }}>
-          <span className="brand-mark"><Wallet size={21} /></span>
+          <span className="brand-mark"><Logo /></span>
           <span><strong>Ledgerly</strong><small>PERSONAL FINANCE</small></span>
         </a>
         <p className="nav-caption">WORKSPACE</p>
@@ -62,7 +63,7 @@ export function AppShell({ email, onSignOut }: {
 
       <div className="main-column">
         <header className="topbar">
-          <div className="mobile-brand"><span className="brand-mark"><Wallet size={18} /></span> Ledgerly</div>
+          <div className="mobile-brand"><span className="brand-mark"><Logo /></span> Ledgerly</div>
           <div className="breadcrumb">Finance <ChevronRight size={14} /> <strong>{activeSection?.label}</strong></div>
           <div className="topbar-right">
             <span className="local-status"><span /> {email}</span>
