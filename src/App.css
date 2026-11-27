@@ -768,3 +768,12 @@ html, body { overflow-x: hidden; }
 .settings-tabs button.selected { color: #fff; background: var(--green); }
 .settings-tabs button:focus-visible { outline: 2px solid #91b79d; outline-offset: 1px; }
 .settings-panel .page-heading h2 { margin-bottom: 7px; font-size: 22px; font-weight: 700; letter-spacing: -.5px; line-height: 1.16; }
+
+.danger-zone { max-width: 560px; border-color: #e6c9c2; }
+.danger-zone h2 { margin-bottom: 8px; font-size: 15px; }
+.danger-zone > p:not(.eyebrow) { margin-bottom: 14px; color: #596a60; font-size: 13px; line-height: 1.6; }
+.danger-zone label { display: grid; gap: 6px; margin-bottom: 14px; color: #596a60; font-size: 12px; font-weight: 600; }
+.danger-zone input { width: 100%; min-height: 40px; padding: 8px 10px; border: 1px solid #e2e9e3; border-radius: 6px; font-size: 13px; }
+.button-danger { color: #fff; background: #b4533f; }
+.button-danger:hover:not(:disabled) { background: #9a4433; }
+.button-danger:disabled { opacity: .5; cursor: not-allowed; }

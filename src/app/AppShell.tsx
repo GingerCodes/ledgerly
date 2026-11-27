@@ -17,7 +17,7 @@ import { sections, type Section } from './navigation'
 export function AppShell({ email, onSignOut }: {
   email: string | undefined
   /** Resolves to the sign-out error, if any. */
-  onSignOut: () => Promise<Error | null>
+  onSignOut: (options?: { local?: boolean }) => Promise<Error | null>
 }) {
   const { database, accounts, categories, notice, clearNotice, runAction, showError } = useFinance()
   const [section, setSection] = useState<Section>('overview')
@@ -77,7 +77,7 @@ export function AppShell({ email, onSignOut }: {
           {section === 'reports' && <ReportsPage report={report} onEditTransaction={(item) => { setSection('transactions'); setTransactionForm(item) }} />}
           {section === 'accounts' && <AccountsPage />}
           {section === 'deposits' && <DepositsPage />}
-          {section === 'settings' && <SettingsPage />}
+          {section === 'settings' && <SettingsPage onAccountDeleted={() => onSignOut({ local: true })} />}
         </main>
         <footer className="app-footer"><span>Ledgerly · Personal Finance Tracker</span><span><LockKeyhole size={13} /> Stored in your private Supabase account</span></footer>
       </div>

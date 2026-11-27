@@ -1146,6 +1146,14 @@ export class FinanceDatabase {
     }
   }
 
+  /** Permanently deletes the signed-in user's account and all finance data, then closes this database. */
+  async deleteAccount(): Promise<void> {
+    await this.writeQueue
+    const { error } = await this.client.rpc('finance_delete_account')
+    if (error) throw new Error(`Could not delete your account: ${error.message}`)
+    await this.close()
+  }
+
   async close(): Promise<void> {
     if (this.closed) return
     this.closed = true
