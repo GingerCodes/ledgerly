@@ -777,3 +777,18 @@ html, body { overflow-x: hidden; }
 .button-danger { color: #fff; background: #b4533f; }
 .button-danger:hover:not(:disabled) { background: #9a4433; }
 .button-danger:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Responsive fixes */
+/* Primary action first in the DOM (so Enter submits it) but shown last; the mobile column-reverse rule still wins. */
+.form-actions-reverse { flex-direction: row-reverse; flex-wrap: wrap; gap: 8px; }
+/* Stat cards must stay one column on phones; the auto-fit rules above are for wider screens. */
+@media (max-width: 760px) {
+  .app-shell .report-metrics { grid-template-columns: 1fr; }
+}
+/* Native date inputs (especially iOS Safari) ignore width and height unless the native look is removed. */
+.form-grid input[type=date], .snapshot-form input[type=date], .report-filter-grid input[type=date] {
+  -webkit-appearance: none; appearance: none; display: block; width: 100%; min-width: 0; max-width: 100%; min-height: 44px; box-sizing: border-box; line-height: normal;
+}
+.form-grid input[type=date]::-webkit-date-and-time-value, .snapshot-form input[type=date]::-webkit-date-and-time-value, .report-filter-grid input[type=date]::-webkit-date-and-time-value { min-height: 1.5em; margin: 0; text-align: left; }
+/* The browser's own suggestion arrow duplicates the suggestion list and looks like a stray glyph. */
+input[list]::-webkit-calendar-picker-indicator { display: none !important; }

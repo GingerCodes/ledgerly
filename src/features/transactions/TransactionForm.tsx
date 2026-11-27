@@ -177,7 +177,7 @@ export function TransactionForm({
           </label>
         )}
       </div>
-      <div className="form-actions" style={{ flexDirection: 'row-reverse', gap: 8 }}>
+      <div className="form-actions form-actions-reverse">
         <button className="button button-primary" disabled={saving} type="submit">
           {saving ? 'Saving…' : transaction ? 'Save changes' : 'Add transaction'}
         </button>
