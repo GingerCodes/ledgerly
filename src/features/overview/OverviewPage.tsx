@@ -4,6 +4,7 @@ import { useFinance, useFinanceQuery } from '../../app/finance-context'
 import { CURRENT_HOUR } from '../../lib/dates'
 import { type Period, type PeriodMode } from '../../lib/period'
 import { PeriodToggle } from '../../components/PeriodToggle'
+import { NetWorthChart } from './NetWorthChart'
 import { maskAccountNumber } from '../../lib/format'
 import type { Section } from '../../app/navigation'
 import { EmptyState } from '../../components/EmptyState'
@@ -54,6 +55,7 @@ export function OverviewPage({ period, onYearChange, onModeChange, onNavigate, o
                   }) : <EmptyState>No expense categories yet.</EmptyState>}
                 </section>
               </div>
+              <NetWorthChart />
               <section className="panel recent-panel">
                 <div className="panel-heading"><div><p className="eyebrow">LATEST ACTIVITY</p><h2>Recent transactions</h2></div><button className="text-button" onClick={() => onNavigate('transactions')}>All transactions <ChevronRight size={15} /></button></div>
                 {recentTransactions.length ? <TransactionTable transactions={recentTransactions} accounts={accounts} categories={categories} onEdit={(item) => onEditTransaction(item)} compact /> : <EmptyState>Your transactions will appear here.</EmptyState>}
