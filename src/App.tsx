@@ -44,7 +44,7 @@ import { FinanceDatabase } from './data/finance-database'
 import { supabaseSetup } from './data/supabase-client'
 import { copyToArrayBuffer, decryptBackup, encryptBackup } from './data/encrypted-backup'
 import { exportTransactionsCsv, parseTransactionsCsv } from './data/transactions-csv'
-import { summarizeExpenseReport } from './domain/reports'
+import { reportInsights, summarizeExpenseReport } from './domain/reports'
 
 type Section = 'overview' | 'transactions' | 'reports' | 'accounts' | 'deposits' | 'categories' | 'backups'
 type ExpenseReportFilters = {
@@ -62,6 +62,8 @@ const REPORT_MONTH_FORMATTER = new Intl.DateTimeFormat('en-IN', {
   year: 'numeric',
   timeZone: 'UTC',
 })
+const REPORT_COLORS = ['#245c48', '#589368', '#c9a227', '#b4533f', '#5b7db1', '#b8c2bb']
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const ALL_CATEGORIES = 'all'
 const UNCATEGORIZED = 'uncategorized'
 
@@ -789,6 +791,16 @@ function App() {
     .map((item) => ({ ...item, label: categoryPath(item.categoryId, categories) }))
     .sort((left, right) => right.amountPaise - left.amountPaise) ?? []
   const reportSummary = summarizeExpenseReport(reportTransactions, categories)
+  const insights = reportFilters ? reportInsights(reportTransactions, reportFilters.startDate, reportFilters.endDate) : null
+  // Top 5 categories get their own colour; the rest are lumped into one grey slice.
+  const categorySlices = reportSummary.categoryBreakdown.map((item, index) => ({ ...item, color: REPORT_COLORS[Math.min(index, 5)] }))
+  const donut = categorySlices.map((item, index) => {
+    const before = categorySlices.slice(0, index).reduce((sum, other) => sum + other.amountPaise, 0)
+    const total = reportSummary.totalPaise || 1
+    return `${item.color} ${(before / total) * 100}% ${((before + item.amountPaise) / total) * 100}%`
+  }).join(', ')
+  const weekdayTotals = insights?.weekdayTotalsPaise ?? []
+  const busiestWeekday = weekdayTotals.indexOf(Math.max(...weekdayTotals, 1))
   const largestMonthlyExpense = Math.max(
     ...reportSummary.monthlyBreakdown.map((month) => month.amountPaise),
     1,
@@ -1072,10 +1084,22 @@ function App() {
                     </div>
                     <button className="button button-secondary" onClick={exportExpenseReport}><Download size={16} /> Export report CSV</button>
                   </div>
+                  {insights && reportSummary.transactionCount > 0 && (
+                    <section className="report-insight">
+                      <ChartNoAxesCombined size={20} aria-hidden="true" />
+                      <p>
+                        You spent <b>{formatRupees(reportSummary.totalPaise)}</b> over {insights.days} day{insights.days === 1 ? '' : 's'} — about <b>{formatRupees(insights.dailyAveragePaise)}</b> a day.
+                        {' '}<b>{categorySlices[0].categoryPath}</b> was the biggest share at {Math.round((categorySlices[0].amountPaise / reportSummary.totalPaise) * 100)}%.
+                        {' '}Spending peaks on <b>{WEEKDAYS[busiestWeekday]}s</b>, and your largest expense was <b>{formatRupees(insights.largest!.amountPaise)}</b> ({insights.largest!.description}, {insights.largest!.date}).
+                      </p>
+                    </section>
+                  )}
                   <section className="report-metrics">
                     <article className="report-metric-card"><span>Total expenses</span><strong>{formatRupees(reportSummary.totalPaise)}</strong></article>
                     <article className="report-metric-card"><span>Transactions</span><strong>{reportSummary.transactionCount.toLocaleString('en-IN')}</strong></article>
                     <article className="report-metric-card"><span>Average per transaction</span><strong>{formatRupees(reportSummary.transactionCount ? Math.round(reportSummary.totalPaise / reportSummary.transactionCount) : 0)}</strong></article>
+                    <article className="report-metric-card"><span>Daily average</span><strong>{formatRupees(insights?.dailyAveragePaise ?? 0)}</strong></article>
+                    <article className="report-metric-card"><span>Largest expense</span><strong>{formatRupees(insights?.largest?.amountPaise ?? 0)}</strong></article>
                   </section>
                   <div className="report-breakdown-grid">
                     <section className="panel report-breakdown">
@@ -1098,16 +1122,32 @@ function App() {
                     <section className="panel report-breakdown">
                       <div className="panel-heading"><div><p className="eyebrow">CATEGORY DETAIL</p><h2>Where it went</h2></div></div>
                       {reportSummary.categoryBreakdown.length ? (
-                        <div className="report-category-list">
-                          {reportSummary.categoryBreakdown.map((category) => (
-                            <div className="report-category-row" key={category.categoryId ?? UNCATEGORIZED}>
-                              <span>{category.categoryPath}<small>{category.transactionCount} transaction{category.transactionCount === 1 ? '' : 's'}</small></span>
-                              <strong>{formatRupees(category.amountPaise)}</strong>
+                        <>
+                          <div className="report-donut" style={{ background: `conic-gradient(${donut})` }} role="img" aria-label="Share of spending by category"><span>{formatRupees(reportSummary.totalPaise)}</span></div>
+                          <div className="report-category-list">
+                            {categorySlices.map((category) => (
+                              <div className="report-category-row" key={category.categoryId ?? UNCATEGORIZED}>
+                                <span><i className="report-dot" style={{ background: category.color }} />{category.categoryPath}<small>{category.transactionCount} transaction{category.transactionCount === 1 ? '' : 's'} · {Math.round((category.amountPaise / reportSummary.totalPaise) * 100)}%</small></span>
+                                <strong>{formatRupees(category.amountPaise)}</strong>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      ) : <EmptyState>No category totals to show.</EmptyState>}
+                    </section>
+                    {reportSummary.transactionCount > 0 && (
+                      <section className="panel report-breakdown report-weekdays">
+                        <div className="panel-heading"><div><p className="eyebrow">HABITS</p><h2>Spending by weekday</h2></div></div>
+                        <div className="report-weekday-chart">
+                          {weekdayTotals.map((amount, day) => (
+                            <div key={day} className={day === busiestWeekday ? 'peak' : ''} title={`${WEEKDAYS[day]}: ${formatRupees(amount)}`}>
+                              <span style={{ height: `${(amount / Math.max(...weekdayTotals, 1)) * 100}%` }} />
+                              <small>{WEEKDAYS[day].slice(0, 3)}</small>
                             </div>
                           ))}
                         </div>
-                      ) : <EmptyState>No category totals to show.</EmptyState>}
-                    </section>
+                      </section>
+                    )}
                   </div>
                   <section className="panel report-transactions">
                     <div className="panel-heading"><div><p className="eyebrow">MATCHING RECORDS</p><h2>Expense transactions</h2></div><span className="count-pill">{reportSummary.transactionCount}</span></div>

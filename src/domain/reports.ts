@@ -61,3 +61,25 @@ export function summarizeExpenseReport(
     monthlyBreakdown: [...monthsById.values()].sort((left, right) => left.month.localeCompare(right.month)),
   }
 }
+
+export interface ReportInsights {
+  days: number
+  dailyAveragePaise: number
+  largest: Transaction | null
+  /** Expense totals indexed by weekday, 0 = Sunday. */
+  weekdayTotalsPaise: number[]
+}
+
+export function reportInsights(transactions: Transaction[], startDate: string, endDate: string): ReportInsights {
+  const days = Math.max(1, Math.round((Date.parse(endDate) - Date.parse(startDate)) / 86_400_000) + 1)
+  const weekdayTotalsPaise = Array<number>(7).fill(0)
+  let totalPaise = 0
+  let largest: Transaction | null = null
+  for (const transaction of transactions) {
+    if (transaction.type !== 'expense') continue
+    totalPaise += transaction.amountPaise
+    weekdayTotalsPaise[new Date(`${transaction.date}T00:00:00Z`).getUTCDay()] += transaction.amountPaise
+    if (!largest || transaction.amountPaise > largest.amountPaise) largest = transaction
+  }
+  return { days, dailyAveragePaise: Math.round(totalPaise / days), largest, weekdayTotalsPaise }
+}

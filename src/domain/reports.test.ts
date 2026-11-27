@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { summarizeExpenseReport } from './reports'
+import { reportInsights, summarizeExpenseReport } from './reports'
 import type { Category, Transaction } from './models'
 
 describe('expense report summaries', () => {
@@ -28,5 +28,21 @@ describe('expense report summaries', () => {
         { month: '2026-02', amountPaise: 1300, transactionCount: 2 },
       ],
     })
+  })
+})
+
+describe('report insights', () => {
+  it('computes daily average, largest expense and weekday totals over an inclusive range', () => {
+    const base = { type: 'expense' as const, accountId: 'CASH', fromAccountId: null, toAccountId: null, categoryId: null, notes: '', createdAt: '', updatedAt: '' }
+    const transactions: Transaction[] = [
+      { ...base, id: 'a', date: '2026-01-05', description: 'Mon', amountPaise: 1000 }, // Monday
+      { ...base, id: 'b', date: '2026-01-06', description: 'Tue', amountPaise: 3000 }, // Tuesday
+      { ...base, id: 'c', date: '2026-01-06', description: 'Income', amountPaise: 9999, type: 'income' },
+    ]
+    const insights = reportInsights(transactions, '2026-01-05', '2026-01-08')
+    expect(insights.days).toBe(4)
+    expect(insights.dailyAveragePaise).toBe(1000)
+    expect(insights.largest?.id).toBe('b')
+    expect(insights.weekdayTotalsPaise).toEqual([0, 1000, 3000, 0, 0, 0, 0])
   })
 })

@@ -652,3 +652,17 @@ body { font-size: 16px; line-height: 1.55; }
 .segmented button.selected { color: #fff; background: var(--green); }
 .segmented button.selected.expense { background: #b4533f; }
 .segmented button:focus-visible { outline: 2px solid #91b79d; outline-offset: 1px; }
+
+.report-insight { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; padding: 16px 18px; border: 1px solid #cfe0d3; border-radius: 10px; color: #20332c; background: #eef6f0; }
+.report-insight svg { flex: none; margin-top: 2px; color: #245c48; }
+.report-insight p { margin: 0; font-size: 14px; line-height: 1.55; }
+.report-metrics { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.report-donut { display: grid; width: 150px; height: 150px; margin: 0 auto 16px; place-items: center; border-radius: 50%; }
+.report-donut span { display: grid; width: 98px; height: 98px; place-items: center; border-radius: 50%; color: #20332c; background: #fff; font-size: 13px; font-weight: 700; }
+.report-dot { display: inline-block; width: 9px; height: 9px; margin-right: 7px; border-radius: 50%; }
+.report-weekdays { grid-column: 1 / -1; }
+.report-weekday-chart { display: grid; grid-template-columns: repeat(7, 1fr); align-items: end; gap: 10px; height: 150px; }
+.report-weekday-chart > div { display: flex; height: 100%; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; }
+.report-weekday-chart span { display: block; width: 100%; min-height: 2px; border-radius: 6px 6px 0 0; background: #8fb59b; }
+.report-weekday-chart .peak span { background: #245c48; }
+.report-weekday-chart small { color: #526258; font-size: 12px; }
