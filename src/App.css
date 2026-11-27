@@ -645,3 +645,10 @@ body { font-size: 16px; line-height: 1.55; }
   .auth-screen { padding: 14px; }
   .auth-card { padding: 22px 18px; }
 }
+
+.segmented-field { display: grid; gap: 6px; color: #596a60; font-size: 9px; font-weight: 600; }
+.segmented { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 3px; border: 1px solid #e2e9e3; border-radius: 8px; background: #f7f9f7; }
+.segmented button { min-height: 32px; border: 0; border-radius: 6px; color: #596a60; background: transparent; font-size: 11px; font-weight: 600; cursor: pointer; }
+.segmented button.selected { color: #fff; background: var(--green); }
+.segmented button.selected.expense { background: #b4533f; }
+.segmented button:focus-visible { outline: 2px solid #91b79d; outline-offset: 1px; }
