@@ -60,3 +60,4 @@ Keep downloaded CSV exports, `.pfbackup` files, and source financial records out
 ## Historical data
 
 The CSV importer accepts the app's canonical transaction format, not arbitrary database dumps. Convert a source database to the documented fields and ensure account/category IDs map to records in Ledgerly before importing. Validate a small sample against source totals before doing the one-time bulk import.
+
