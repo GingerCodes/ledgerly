@@ -37,7 +37,7 @@ Exports contain transactions for one calendar year, based on transaction date. I
 - **Transactions:** stable ID, date (`YYYY-MM-DD`), type (expense, income, transfer), account reference, description, positive INR amount, optional category, notes, and created/updated timestamps.
 - **Accounts:** stable ID, name, type, institution, account number, status, opening date, and opening balance. Include a `CASH` account for cash on hand; it has no account number. Store bank account numbers as text to preserve leading zeroes. Do not repeat account numbers in transactions.
 - **Categories:** stable ID, name, parent category, and status. Categories can be nested to any depth; transactions reference the most specific category.
-- **Fixed deposits:** stable ID, institution, FD account/reference number, principal, start and maturity dates, interest rate and terms, linked account, maturity instruction, status, and notes.
+- **Fixed deposits:** stable ID, institution, FD account/reference number, principal, start and maturity dates, interest rate and terms, linked (maturity) account, funding savings account, maturity instruction, status, and notes.
 - **Balance snapshots:** stable ID, account, date, reported balance, source, and notes. Snapshots are comparisons, not replacements for transaction history.
 - **Edit history (optional):** transaction ID, edit time, changed fields, old/new values, and reason. Do not copy account numbers into the log.
 
@@ -82,6 +82,7 @@ CSV is an export and interchange format, not a second editable source of truth o
 
 - Track savings transactions and bank-reported balance snapshots separately.
 - Store FD principal, dates, rate, terms, linked account, and maturity instructions.
+- A new FD is funded from a savings account: its principal is debited from that account's balance (computed from the deposit, not stored as a transaction) and the save is rejected if the account would go negative. Closing an FD does not return the principal; record the maturity proceeds as income or a transfer.
 - Provide maturity reminders and balance summaries.
 - Do not infer missing FD terms or claim projected interest is an exact payout.
 
@@ -102,11 +103,17 @@ Support summaries by date range, year, category path, account, and transaction t
 
 ### Implemented backend
 
-- Supabase Auth provides email/password sessions. The browser uses only the publishable/anon key; the service-role key is never used in client code.
-- The migration creates per-user finance tables with RLS and two authenticated RPC functions: `finance_load_snapshot` and `finance_apply_changes`.
+- Supabase Auth provides email/password and Google sessions. The user's full name is collected at registration (or taken from the Google profile) and stored as `full_name` user metadata; it can be edited in Settings → Account. The browser uses only the publishable/anon key (`SB_URL` / `SB_ANON_KEY`); the service-role key is never used in client code.
+- The migrations create per-user finance tables with RLS and three authenticated RPC functions: `finance_load_snapshot`, `finance_apply_changes`, and `finance_delete_account` (deletes the caller's auth user, cascading to all of their finance data and freeing the email for a fresh sign-up).
 - `finance_apply_changes` applies only changed rows in one transaction and checks the user's revision to reject stale edits from another session.
 - SQLite in `sql.js` is an in-memory query/calculation layer. Supabase PostgreSQL is the persistent source of truth; internet access is required for finance data.
-- The PWA includes nested categories, cash/savings accounts, transactions, fixed deposits, balance snapshots, period/category reports, annual CSV import/export, and encrypted backup/restore.
+- The PWA includes nested categories, cash/savings accounts, transactions, fixed deposits (funded from a savings account), balance snapshots, period/category reports with insights and charts, annual CSV import/export, and encrypted backup/restore.
+- Settings groups Categories, Backup & import, and Account (edit name, sign out, delete account). The app offers installation in browsers, shows a "new version available" banner after each deployment, and shows the release tag and commit in the footer.
+
+### Application structure and delivery
+
+- Front end modules: `src/app` (shell, shared finance context, auth and database hooks), `src/features/<area>` (pages, forms, panels), `src/components`, `src/domain` (rules, no I/O), `src/data` (SQLite + Supabase persistence), `src/lib`. See README for the full map.
+- Merging to `main` deploys to production through one GitHub Action (lint, tests, remote Vercel build, release tag). SQL migrations are applied by hand in Supabase before merging code that needs them.
 
 ## 6. Required agent skills
 
