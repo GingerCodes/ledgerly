@@ -16,7 +16,8 @@ import { appVersion } from '../lib/version'
 import { useFinance, useFinanceQuery } from './finance-context'
 import { sections, type Section } from './navigation'
 
-export function AppShell({ email, onSignOut }: {
+export function AppShell({ userName, email, onSignOut }: {
+  userName: string
   email: string | undefined
   /** Resolves to the sign-out error, if any. */
   onSignOut: (options?: { local?: boolean }) => Promise<Error | null>
@@ -66,7 +67,7 @@ export function AppShell({ email, onSignOut }: {
           <div className="mobile-brand"><span className="brand-mark"><Logo /></span> Ledgerly</div>
           <div className="breadcrumb">Finance <ChevronRight size={14} /> <strong>{activeSection?.label}</strong></div>
           <div className="topbar-right">
-            <span className="local-status"><span /> {email}</span>
+            <span className="local-status" title={email}><span /> {userName}</span>
             <button className="button button-secondary button-signout" onClick={() => void signOut()} aria-label="Sign out"><LogOut size={16} /><span>Sign out</span></button>
             <button className="button button-primary top-add" onClick={() => { setSection('transactions'); setTransactionForm(null) }}><Plus size={16} /> Add transaction</button>
           </div>

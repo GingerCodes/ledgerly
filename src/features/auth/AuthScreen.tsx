@@ -14,6 +14,7 @@ export function AuthScreen({
   clearExternalError: () => void
 }) {
   const [creatingAccount, setCreatingAccount] = useState(false)
+  const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
@@ -29,9 +30,12 @@ export function AuthScreen({
     setSuccess('')
     try {
       if (creatingAccount) {
+        const name = fullName.trim()
+        if (!name) throw new Error('Enter your full name.')
         const { data, error: signUpError } = await client.auth.signUp({
           email: email.trim(),
           password,
+          options: { data: { full_name: name } },
         })
         if (signUpError) throw signUpError
         if (!data.session) {
@@ -93,6 +97,7 @@ export function AuthScreen({
           </ol>
         ) : (
           <form className="auth-form" onSubmit={(event) => void submit(event)}>
+            {creatingAccount && <label>Full name<input autoComplete="name" required maxLength={100} value={fullName} onChange={(event) => setFullName(event.target.value)} /></label>}
             <label>Email address<input type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} /></label>
             <label>Password<input type="password" autoComplete={creatingAccount ? 'new-password' : 'current-password'} minLength={12} required value={password} onChange={(event) => setPassword(event.target.value)} /></label>
             <button className="button button-primary" type="submit" disabled={busy}>

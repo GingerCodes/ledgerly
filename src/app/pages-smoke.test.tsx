@@ -56,8 +56,8 @@ describe('pages render', () => {
     expect(render(<SettingsPage onAccountDeleted={async () => null} />)).toContain('Backup &amp; import')
     expect(render(<BackupPage />)).toContain('Import transactions from CSV')
 
-    const shell = render(<AppShell email="me@example.com" onSignOut={async () => null} />)
-    expect(shell).toContain('me@example.com')
+    const shell = render(<AppShell userName="Alex Jose" email="me@example.com" onSignOut={async () => null} />)
+    expect(shell).toContain('Alex Jose')
     expect(shell).toContain('Fixed deposits')
     expect(shell).toContain('Settings')
     await database.close()
