@@ -24,7 +24,7 @@ export function createSupabaseClient() {
   if (!url || !key) {
     return {
       client: null,
-      error: 'Supabase is not configured. Copy .env.example to .env.local and enter your project URL and publishable/anon key.',
+      error: 'The app is not configured. Copy .env.example to .env.local and set SB_URL and SB_ANON_KEY.',
     }
   }
 
@@ -32,16 +32,16 @@ export function createSupabaseClient() {
   try {
     parsedUrl = new URL(url)
   } catch {
-    return { client: null, error: 'The Supabase project URL is invalid.' }
+    return { client: null, error: 'The configured project URL (SB_URL) is invalid.' }
   }
 
   if (parsedUrl.protocol !== 'https:' && parsedUrl.hostname !== 'localhost') {
-    return { client: null, error: 'The Supabase project URL must use HTTPS.' }
+    return { client: null, error: 'The configured project URL (SB_URL) must use HTTPS.' }
   }
   if (isServiceRoleKey(key)) {
     return {
       client: null,
-      error: 'A service-role or secret key cannot be used in this browser app. Use the Supabase publishable/anon key instead.',
+      error: 'A service-role or secret key cannot be used in this browser app. Use the publishable/anon key instead.',
     }
   }
 

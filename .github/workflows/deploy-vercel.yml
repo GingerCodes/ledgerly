@@ -54,14 +54,17 @@ jobs:
 
       # Build on Vercel, not here: `vercel pull` cannot read Sensitive env vars (SB_URL, SB_ANON_KEY)
       # and would bake "[SENSITIVE]" placeholders into the bundle.
+      - name: Set release tag
+        run: echo "RELEASE_TAG=v$(date -u +%Y.%m.%d)-${{ github.run_number }}" >> "$GITHUB_ENV"
+
       - name: Deploy to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
-        run: vercel deploy --prod --token="$VERCEL_TOKEN"
+        run: vercel deploy --prod --token="$VERCEL_TOKEN" --build-env VITE_RELEASE_TAG="$RELEASE_TAG" --build-env VITE_COMMIT_SHA="$GITHUB_SHA"
 
       - name: Create release tag
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "v$(date -u +%Y.%m.%d)-${{ github.run_number }}" --target "$GITHUB_SHA" --generate-notes
+        run: gh release create "$RELEASE_TAG" --target "$GITHUB_SHA" --generate-notes

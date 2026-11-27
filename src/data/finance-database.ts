@@ -260,20 +260,20 @@ function newId(): string {
 
 function parseCloudSnapshot(value: unknown): CloudSnapshot {
   if (typeof value !== 'object' || value === null || !('revision' in value)) {
-    throw new Error('Supabase returned an invalid finance snapshot.')
+    throw new Error('The server returned an invalid finance snapshot.')
   }
   const record = value as Record<string, unknown>
   if (typeof record.revision !== 'number' || !Number.isSafeInteger(record.revision) || record.revision < 0) {
-    throw new Error('Supabase returned an invalid finance revision.')
+    throw new Error('The server returned an invalid finance revision.')
   }
 
   const snapshot = { revision: record.revision } as CloudSnapshot
   for (const table of snapshotTables) {
     const rows = record[table]
-    if (!Array.isArray(rows)) throw new Error(`Supabase returned invalid ${table} data.`)
+    if (!Array.isArray(rows)) throw new Error(`The server returned invalid ${table} data.`)
     snapshot[table] = rows.map((row) => {
       if (typeof row !== 'object' || row === null || Array.isArray(row)) {
-        throw new Error(`Supabase returned an invalid row in ${table}.`)
+        throw new Error(`The server returned an invalid row in ${table}.`)
       }
       const values: SqlRow = {}
       for (const [column, item] of Object.entries(row)) {
@@ -284,7 +284,7 @@ function parseCloudSnapshot(value: unknown): CloudSnapshot {
         } else if (typeof item === 'boolean') {
           values[column] = item ? 1 : 0
         } else {
-          throw new Error(`Supabase returned an unsupported value in ${table}.${column}.`)
+          throw new Error(`The server returned an unsupported value in ${table}.${column}.`)
         }
       }
       return values
@@ -325,7 +325,7 @@ function hydrateDatabase(database: Database, snapshot: CloudSnapshot): void {
   for (const row of snapshot.categories) {
     const parentId = row.parent_category_id
     if (parentId !== null) {
-      if (typeof parentId !== 'string') throw new Error('Supabase returned an invalid category parent.')
+      if (typeof parentId !== 'string') throw new Error('The server returned an invalid category parent.')
       database.run('UPDATE categories SET parent_category_id = ? WHERE id = ?', [
         parentId,
         readString(row, 'id'),
@@ -348,7 +348,7 @@ function hydrateDatabase(database: Database, snapshot: CloudSnapshot): void {
     'id', 'transaction_id', 'changed_at', 'reason', 'changed_fields_json',
   ])
   const violations = database.exec('PRAGMA foreign_key_check')
-  if (violations.length > 0) throw new Error('Supabase finance data contains invalid references.')
+  if (violations.length > 0) throw new Error('Your finance data contains invalid references.')
 }
 
 function queryDatabaseRows(database: Database, sql: string): SqlRow[] {
@@ -461,9 +461,9 @@ export class FinanceDatabase {
     if (error) {
       const diagnostics = [error.code, error.details, error.hint].filter(Boolean).join(' ')
       const message = error.code === 'PGRST002'
-        ? 'The Supabase data API cannot connect to PostgreSQL while loading its schema cache. Check the project API and database status.'
+        ? 'The data service cannot reach its database while loading. Check the project API and database status.'
         : error.message
-      throw new Error(`Could not load finance data from Supabase: ${message}${diagnostics ? ` (${diagnostics})` : ''}`)
+      throw new Error(`Could not load your finance data: ${message}${diagnostics ? ` (${diagnostics})` : ''}`)
     }
     const snapshot = parseCloudSnapshot(data)
 
@@ -544,9 +544,9 @@ export class FinanceDatabase {
       expected_revision: this.cloudRevision,
       changes,
     })
-    if (error) throw new Error(`Could not save finance data to Supabase: ${error.message}`)
+    if (error) throw new Error(`Could not save your finance data: ${error.message}`)
     if (typeof data !== 'number' || !Number.isSafeInteger(data)) {
-      throw new Error('Supabase returned an invalid finance revision after saving.')
+      throw new Error('The server returned an invalid finance revision after saving.')
     }
     this.cloudRevision = data
   }

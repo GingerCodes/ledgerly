@@ -17,7 +17,7 @@ function App() {
   const auth = useAuthSession(supabase)
   const { database, loadingError } = useFinanceDatabase(supabase, auth.session?.user.id)
 
-  if (!auth.authReady) return <Splash title="Ledgerly"><p>Connecting to Supabase…</p></Splash>
+  if (!auth.authReady) return <Splash title="Ledgerly"><p>Connecting…</p></Splash>
 
   if (!auth.session) {
     return (
@@ -33,7 +33,7 @@ function App() {
   if (!database) {
     return (
       <Splash title="Personal Finance">
-        {loadingError ? <><p className="form-error" role="alert">{loadingError}</p><p>Supabase finance data could not be opened. Check the setup and reload.</p></> : <p>Loading your private Supabase finance data…</p>}
+        {loadingError ? <><p className="form-error" role="alert">{loadingError}</p><p>Your finance data could not be opened. Check the setup and reload.</p></> : <p>Loading your private finance data…</p>}
       </Splash>
     )
   }

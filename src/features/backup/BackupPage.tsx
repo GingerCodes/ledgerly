@@ -30,7 +30,7 @@ export function BackupPage() {
       showError(new Error('Choose an encrypted backup file first.'))
       return
     }
-    if (!window.confirm('Restore this backup and replace all finance data in your Supabase account? This cannot be undone.')) return
+    if (!window.confirm('Restore this backup and replace all finance data in your account? This cannot be undone.')) return
     try {
       const bytes = new Uint8Array(await restoreFile.arrayBuffer())
       await database.restoreBackupBytes(await decryptBackup(bytes, restorePassphrase))
@@ -55,14 +55,14 @@ export function BackupPage() {
                   <div className="security-note"><ShieldCheck size={16} /> AES-256-GCM encryption · passphrase-derived key</div>
                 </section>
                 <section className="panel backup-card">
-                  <div className="backup-icon restore"><FileUp size={20} /></div><p className="eyebrow">RESTORE DATA</p><h2>Load a previous backup</h2><p>Restoring replaces all finance data in your Supabase account. Export a backup first if you need to keep both.</p>
+                  <div className="backup-icon restore"><FileUp size={20} /></div><p className="eyebrow">RESTORE DATA</p><h2>Load a previous backup</h2><p>Restoring replaces all finance data in your account. Export a backup first if you need to keep both.</p>
                   <label>Encrypted backup file<input type="file" accept=".pfbackup,application/octet-stream" onChange={(event) => setRestoreFile(event.target.files?.[0] ?? null)} /></label>
                   <label>Backup passphrase<input type="password" autoComplete="current-password" value={restorePassphrase} onChange={(event) => setRestorePassphrase(event.target.value)} /></label>
                   <button className="button button-secondary" disabled={!restoreFile || !restorePassphrase} onClick={() => void restoreEncryptedBackup()}><FileUp size={16} /> Restore backup</button>
                 </section>
               </div>
               <CsvImportPanel />
-              <div className="data-warning"><CircleHelp size={17} /><span><b>Supabase cloud storage</b>Your records are stored in your authenticated Supabase account. Download encrypted backups regularly; the app cannot recover a lost backup passphrase.</span></div>
+              <div className="data-warning"><CircleHelp size={17} /><span><b>Cloud storage</b>Your records are stored in your private, signed-in account. Download encrypted backups regularly; the app cannot recover a lost backup passphrase.</span></div>
             </>
   )
 }

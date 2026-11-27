@@ -11,6 +11,7 @@ import { SettingsPage } from '../features/settings/SettingsPage'
 import { TransactionForm } from '../features/transactions/TransactionForm'
 import { TransactionsPage } from '../features/transactions/TransactionsPage'
 import { CURRENT_YEAR } from '../lib/dates'
+import { appVersion } from '../lib/version'
 import { useFinance, useFinanceQuery } from './finance-context'
 import { sections, type Section } from './navigation'
 
@@ -64,7 +65,7 @@ export function AppShell({ email, onSignOut }: {
           <div className="mobile-brand"><span className="brand-mark"><Wallet size={18} /></span> Ledgerly</div>
           <div className="breadcrumb">Finance <ChevronRight size={14} /> <strong>{activeSection?.label}</strong></div>
           <div className="topbar-right">
-            <span className="local-status"><span /> Supabase · {email}</span>
+            <span className="local-status"><span /> {email}</span>
             <button className="button button-secondary button-signout" onClick={() => void signOut()} aria-label="Sign out"><LogOut size={16} /><span>Sign out</span></button>
             <button className="button button-primary top-add" onClick={() => { setSection('transactions'); setTransactionForm(null) }}><Plus size={16} /> Add transaction</button>
           </div>
@@ -79,7 +80,7 @@ export function AppShell({ email, onSignOut }: {
           {section === 'deposits' && <DepositsPage />}
           {section === 'settings' && <SettingsPage onAccountDeleted={() => onSignOut({ local: true })} />}
         </main>
-        <footer className="app-footer"><span>Ledgerly · Personal Finance Tracker</span><span><LockKeyhole size={13} /> Stored in your private Supabase account</span></footer>
+        <footer className="app-footer"><span>Ledgerly · Personal Finance Tracker · <span title="Release and commit this build was made from">{appVersion}</span></span><span><LockKeyhole size={13} /> Stored in your private account</span></footer>
       </div>
 
       {transactionForm !== undefined && section === 'overview' && (
