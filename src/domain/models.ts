@@ -16,6 +16,12 @@ export interface Account {
   updatedAt: string
 }
 
+/** Bank + last four digits for savings accounts (their names are usually identical); the plain name otherwise. */
+export function accountLabel(account: Pick<Account, 'name' | 'institution' | 'accountNumber'>): string {
+  const last4 = account.accountNumber.trim().slice(-4)
+  return account.institution && last4 ? `${account.institution} •••• ${last4}` : account.name
+}
+
 export interface Category {
   id: string
   name: string

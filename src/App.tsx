@@ -24,6 +24,7 @@ import {
   Wallet,
 } from 'lucide-react'
 import {
+  accountLabel,
   categoryPath,
   categoryDescendantIds,
   estimateFixedDepositMaturityValue,
@@ -364,14 +365,14 @@ function TransactionForm({
               From account
               <select required value={fromAccountId} onChange={(event) => setFromAccountId(event.target.value)}>
                 <option value="">Select account</option>
-                {accounts.filter((account) => account.status === 'active').map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}
+                {accounts.filter((account) => account.status === 'active').map((account) => <option key={account.id} value={account.id}>{accountLabel(account)}</option>)}
               </select>
             </label>
             <label>
               To account
               <select required value={toAccountId} onChange={(event) => setToAccountId(event.target.value)}>
                 <option value="">Select account</option>
-                {accounts.filter((account) => account.status === 'active').map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}
+                {accounts.filter((account) => account.status === 'active').map((account) => <option key={account.id} value={account.id}>{accountLabel(account)}</option>)}
               </select>
             </label>
           </>
@@ -384,7 +385,7 @@ function TransactionForm({
               value={type === 'expense' ? 'CASH' : accountId}
               onChange={(event) => setAccountId(event.target.value)}
             >
-              {accounts.filter((account) => account.status === 'active' && (type !== 'expense' || account.id === 'CASH')).map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}
+              {accounts.filter((account) => account.status === 'active' && (type !== 'expense' || account.id === 'CASH')).map((account) => <option key={account.id} value={account.id}>{accountLabel(account)}</option>)}
             </select>
             {type === 'expense' && <span className="field-hint">Daily expenses are recorded from cash.</span>}
           </label>
@@ -566,7 +567,7 @@ function DepositForm({
         <label>Linked maturity account
           <select value={linkedAccountId} onChange={(event) => setLinkedAccountId(event.target.value)}>
             <option value="">Not specified</option>
-            {accounts.filter((account) => account.type === 'savings').map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}
+            {accounts.filter((account) => account.type === 'savings').map((account) => <option key={account.id} value={account.id}>{accountLabel(account)}</option>)}
           </select>
         </label>
         <label>Maturity instruction<input maxLength={200} value={maturityInstruction} onChange={(event) => setMaturityInstruction(event.target.value)} placeholder="Renew principal; credit interest" /></label>
@@ -1187,7 +1188,7 @@ function App() {
               <section className="panel snapshot-panel">
                 <div className="panel-heading"><div><p className="eyebrow">RECONCILIATION</p><h2>Balance snapshots</h2><p className="panel-subtitle">Record a statement or passbook balance to compare later.</p></div></div>
                 <form className="snapshot-form" onSubmit={addSnapshot}>
-                  <label>Account<select required value={snapshotAccountId} onChange={(event) => setSnapshotAccountId(event.target.value)}><option value="">Select account</option>{accounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}</select></label>
+                  <label>Account<select required value={snapshotAccountId} onChange={(event) => setSnapshotAccountId(event.target.value)}><option value="">Select account</option>{accounts.map((account) => <option key={account.id} value={account.id}>{accountLabel(account)}</option>)}</select></label>
                   <label>As of date<input required type="date" value={snapshotDate} onChange={(event) => setSnapshotDate(event.target.value)} /></label>
                   <label>Reported balance (INR)<input required inputMode="decimal" value={snapshotBalance} onChange={(event) => setSnapshotBalance(event.target.value)} placeholder="0.00" /></label>
                   <label>Source<input required value={snapshotSource} onChange={(event) => setSnapshotSource(event.target.value)} placeholder="Bank statement" /></label>
@@ -1298,19 +1299,19 @@ function TransactionTable({
   onEdit: (transaction: Transaction) => void
   compact?: boolean
 }) {
-  const accountNames = new Map(accounts.map((account) => [account.id, account.name]))
+  const accountNames = new Map(accounts.map((account) => [account.id, accountLabel(account)]))
   return (
     <div className={`table-wrap ${compact ? 'compact-table' : ''}`}>
       <table className="data-table">
         <thead><tr><th>Date</th><th>Description</th><th>Category / account</th><th>Type</th><th className="align-right">Amount</th><th aria-label="Actions" /></tr></thead>
         <tbody>{transactions.map((transaction) => {
-          const accountLabel = transaction.type === 'transfer'
+          const accountText = transaction.type === 'transfer'
             ? `${accountNames.get(transaction.fromAccountId ?? '') ?? 'Unknown'} → ${accountNames.get(transaction.toAccountId ?? '') ?? 'Unknown'}`
             : accountNames.get(transaction.accountId ?? '') ?? 'Unknown account'
           return <tr key={transaction.id}>
             <td className="date-cell">{transaction.date}</td>
             <td><b>{transaction.description}</b>{transaction.notes && <small className="table-note">{transaction.notes}</small>}</td>
-            <td><span className="category-cell">{transaction.type === 'transfer' ? accountLabel : categoryPath(transaction.categoryId, categories)}</span><small className="table-note">{transaction.type === 'transfer' ? 'Account transfer' : accountLabel}</small></td>
+            <td><span className="category-cell">{transaction.type === 'transfer' ? accountText : categoryPath(transaction.categoryId, categories)}</span><small className="table-note">{transaction.type === 'transfer' ? 'Account transfer' : accountText}</small></td>
             <td><span className={`transaction-type ${transaction.type}`}>{transaction.type}</span></td>
             <td className={`amount-cell align-right ${transaction.type === 'income' ? 'income-amount' : transaction.type === 'expense' ? 'expense-amount' : ''}`}>{transaction.type === 'expense' ? '−' : transaction.type === 'income' ? '+' : ''}{formatRupees(transaction.amountPaise)}</td>
             <td><button className="icon-button" aria-label={`Edit ${transaction.description}`} onClick={() => onEdit(transaction)}><Pencil size={15} /></button></td>
@@ -1326,7 +1327,7 @@ function SnapshotRow({ snapshot, accounts }: { snapshot: BalanceSnapshot; accoun
   const difference = snapshot.reportedBalancePaise - snapshot.calculatedBalancePaise
   return (
     <div className="snapshot-row">
-      <span><b>{account?.name ?? 'Unknown account'}</b><small>{snapshot.date} · {snapshot.source}</small></span>
+      <span><b>{account ? accountLabel(account) : 'Unknown account'}</b><small>{snapshot.date} · {snapshot.source}</small></span>
       <span><small>Reported</small><strong>{formatRupees(snapshot.reportedBalancePaise)}</strong></span>
       <span><small>From transactions</small><strong>{formatRupees(snapshot.calculatedBalancePaise)}</strong></span>
       <span className={`snapshot-difference ${difference === 0 ? 'matched' : ''}`}>

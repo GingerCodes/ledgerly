@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  accountLabel,
   calculateAccountBalances,
   categoryDescendantIds,
   categoryPath,
@@ -95,5 +96,12 @@ describe('fixed-deposit estimates', () => {
     }
 
     expect(estimateFixedDepositMaturityValue(deposit)).toBe(110000)
+  })
+})
+
+describe('account labels', () => {
+  it('uses bank and last four digits, falling back to the name', () => {
+    expect(accountLabel({ name: 'Savings', institution: 'HDFC', accountNumber: '50100123451234' })).toBe('HDFC •••• 1234')
+    expect(accountLabel({ name: 'Cash', institution: '', accountNumber: '' })).toBe('Cash')
   })
 })
