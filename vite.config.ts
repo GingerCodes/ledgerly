@@ -3,6 +3,8 @@ import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  // Expose SB_URL and SB_ANON_KEY (no VITE_ prefix) to the client bundle.
+  envPrefix: ['VITE_', 'SB_'],
   plugins: [
     react(),
     VitePWA({

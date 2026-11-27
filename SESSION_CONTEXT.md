@@ -15,7 +15,7 @@ The user selected Supabase as the cloud source of truth. They reported no existi
 - React, TypeScript, Vite, and a responsive PWA.
 - Supabase Auth email/password sign-in; per-user data isolation via RLS.
 - Supabase PostgreSQL is persistent storage. SQLite via `sql.js` is an in-memory query/calculation layer, not persistent local storage; finance data requires network access.
-- The client uses `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from `.env.local`. That file is Git-ignored. Never inspect, print, copy, or commit its values. Never use a service-role or secret key in frontend code.
+- The client uses `SB_URL` and `SB_ANON_KEY` from `.env.local`. That file is Git-ignored. Never inspect, print, copy, or commit its values. Never use a service-role or secret key in frontend code.
 - `supabase/migrations/20261127120000_finance_schema.sql` creates the tables, RLS policies, and two authenticated RPC functions: `finance_load_snapshot` and `finance_apply_changes`.
 - `finance_apply_changes` sends incremental row changes in a transaction and checks a per-user revision to reject stale writes instead of silently overwriting changes from another session.
 - The Supabase project must expose the `public` schema in Project Settings → API → Exposed schemas. If PostgREST reports `PGRST002` or `pg_pgrst_no_exposed_schemas`, verify `public` is exposed and run `NOTIFY pgrst, 'reload schema';` in SQL Editor.
