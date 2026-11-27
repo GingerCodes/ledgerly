@@ -53,10 +53,10 @@ describe('pages render', () => {
     expect(deposits).toContain('Funded from')
     expect(deposits).toContain('HDFC')
     expect(render(<CategoriesPage />)).toContain('Food')
-    expect(render(<SettingsPage onAccountDeleted={async () => null} />)).toContain('Backup &amp; import')
+    expect(render(<SettingsPage fullName="Alex Jose" email="me@example.com" onSaveName={async () => null} onAccountDeleted={async () => null} />)).toContain('Backup &amp; import')
     expect(render(<BackupPage />)).toContain('Import transactions from CSV')
 
-    const shell = render(<AppShell userName="Alex Jose" email="me@example.com" onSignOut={async () => null} />)
+    const shell = render(<AppShell userName="Alex Jose" fullName="Alex Jose" email="me@example.com" onSignOut={async () => null} onUpdateName={async () => null} />)
     expect(shell).toContain('Alex Jose')
     expect(shell).toContain('Fixed deposits')
     expect(shell).toContain('Settings')

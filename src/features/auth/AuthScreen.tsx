@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { Logo } from '../../components/Logo'
+import { MAX_NAME_LENGTH } from '../../lib/user'
 
 export function AuthScreen({
   client,
@@ -97,7 +98,7 @@ export function AuthScreen({
           </ol>
         ) : (
           <form className="auth-form" onSubmit={(event) => void submit(event)}>
-            {creatingAccount && <label>Full name<input autoComplete="name" required maxLength={100} value={fullName} onChange={(event) => setFullName(event.target.value)} /></label>}
+            {creatingAccount && <label>Full name<input autoComplete="name" required maxLength={MAX_NAME_LENGTH} value={fullName} onChange={(event) => setFullName(event.target.value)} /></label>}
             <label>Email address<input type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} /></label>
             <label>Password<input type="password" autoComplete={creatingAccount ? 'new-password' : 'current-password'} minLength={12} required value={password} onChange={(event) => setPassword(event.target.value)} /></label>
             <button className="button button-primary" type="submit" disabled={busy}>

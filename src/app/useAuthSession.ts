@@ -42,5 +42,12 @@ export function useAuthSession(supabase: SupabaseClient | null) {
     return error
   }
 
-  return { session, authReady, authStateError, clearAuthError: () => setAuthStateError(''), signOut }
+  /** Saves the full name to the user's profile; the auth listener then refreshes `session`. Resolves to the error, if any. */
+  async function updateFullName(name: string): Promise<Error | null> {
+    if (!supabase) return new Error('Not signed in.')
+    const { error } = await supabase.auth.updateUser({ data: { full_name: name } })
+    return error
+  }
+
+  return { session, authReady, authStateError, clearAuthError: () => setAuthStateError(''), signOut, updateFullName }
 }

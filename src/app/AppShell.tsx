@@ -16,11 +16,15 @@ import { appVersion } from '../lib/version'
 import { useFinance, useFinanceQuery } from './finance-context'
 import { sections, type Section } from './navigation'
 
-export function AppShell({ userName, email, onSignOut }: {
+export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }: {
+  /** Name for the top bar (falls back to the email). */
   userName: string
+  /** The stored full name, or '' if none. */
+  fullName: string
   email: string | undefined
   /** Resolves to the sign-out error, if any. */
   onSignOut: (options?: { local?: boolean }) => Promise<Error | null>
+  onUpdateName: (name: string) => Promise<Error | null>
 }) {
   const { database, accounts, categories, notice, clearNotice, runAction, showError } = useFinance()
   const [section, setSection] = useState<Section>('overview')
@@ -80,7 +84,7 @@ export function AppShell({ userName, email, onSignOut }: {
           {section === 'reports' && <ReportsPage report={report} onEditTransaction={(item) => { setSection('transactions'); setTransactionForm(item) }} />}
           {section === 'accounts' && <AccountsPage />}
           {section === 'deposits' && <DepositsPage />}
-          {section === 'settings' && <SettingsPage onAccountDeleted={() => onSignOut({ local: true })} />}
+          {section === 'settings' && <SettingsPage fullName={fullName} email={email} onSaveName={onUpdateName} onAccountDeleted={() => onSignOut({ local: true })} />}
         </main>
         <footer className="app-footer"><span>Ledgerly · Personal Finance Tracker · <span title="Release and commit this build was made from">{appVersion}</span></span><span><LockKeyhole size={13} /> Stored in your private account</span></footer>
       </div>

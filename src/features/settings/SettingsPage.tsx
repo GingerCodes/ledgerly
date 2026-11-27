@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { BackupPage } from '../backup/BackupPage'
 import { CategoriesPage } from '../categories/CategoriesPage'
 import { DeleteAccountPanel } from './DeleteAccountPanel'
+import { ProfilePanel } from './ProfilePanel'
 
 const tabs = [
   { id: 'categories', label: 'Categories' },
@@ -11,7 +12,11 @@ const tabs = [
 
 type TabId = typeof tabs[number]['id']
 
-export function SettingsPage({ onAccountDeleted }: {
+export function SettingsPage({ fullName, email, onSaveName, onAccountDeleted }: {
+  fullName: string
+  email: string | undefined
+  /** Saves the full name; resolves to the error, if any. */
+  onSaveName: (name: string) => Promise<Error | null>
   /** Ends the session after the account has been deleted. */
   onAccountDeleted: () => Promise<Error | null>
 }) {
@@ -30,7 +35,12 @@ export function SettingsPage({ onAccountDeleted }: {
       <div id="settings-panel" className="settings-panel" role="tabpanel" aria-labelledby={`settings-tab-${tab}`}>
         {tab === 'categories' && <CategoriesPage />}
         {tab === 'backups' && <BackupPage />}
-        {tab === 'account' && <DeleteAccountPanel onShowBackup={() => setTab('backups')} onDeleted={onAccountDeleted} />}
+        {tab === 'account' && (
+          <>
+            <ProfilePanel fullName={fullName} email={email} onSave={onSaveName} />
+            <DeleteAccountPanel onShowBackup={() => setTab('backups')} onDeleted={onAccountDeleted} />
+          </>
+        )}
       </div>
     </>
   )
