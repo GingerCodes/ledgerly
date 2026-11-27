@@ -64,7 +64,8 @@ The workflow limits secrets to the steps that use them, does not persist git cre
 - Create fixed deposits funded from a savings account: the principal is debited from that account's balance (and from balance-snapshot comparisons from the deposit's start date), and saving fails if the account would go negative. Older deposits without a funding account keep working unchanged.
 - Organize transactions with nested categories; archived categories remain available to existing records.
 - Generate expense reports for an inclusive date range, filtered by category, with an option to include subcategories. Results include a plain-English summary, daily average and largest expense, a category donut with shares, a spending-by-weekday chart, monthly/category breakdowns, matching transactions, and CSV export.
-- Review annual totals, category spending, account balances, and reported balance snapshots compared with recorded activity.
+- Switch every year-based view (Overview, Transactions, Reports defaults, CSV export names) between the Indian **financial year** (1 April to 31 March, the default) and the **calendar year**; the choice is remembered in the browser.
+- Review period totals, category spending, account balances, and reported balance snapshots compared with recorded activity.
 - Export transactions as year-wise CSV and import validated CSV data. Existing transaction IDs are skipped during import.
 - Create and restore a full-database backup encrypted with AES-256-GCM and a passphrase.
 - **Settings** groups three tabs: Categories, Backup & import, and Account. Account lets you update your full name, sign out (installed app and phones), and permanently delete your account and all its data; the same email can then register again as a brand-new account.

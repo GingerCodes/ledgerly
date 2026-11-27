@@ -842,3 +842,8 @@ input[list]::-webkit-calendar-picker-indicator { display: none !important; }
   .signout-panel { display: block; }
   .sidebar-user { display: none; }
 }
+
+.segmented-two { grid-template-columns: repeat(2, 1fr); }
+.period-toggle { width: 100%; max-width: 320px; }
+.period-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 14px; }
+.period-range { color: #526258; font-size: 13px; }

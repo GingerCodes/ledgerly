@@ -35,6 +35,7 @@ The user selected Supabase as the cloud source of truth. Do not create test tran
 - Transaction form: Expense/Income/Transfer buttons, searchable category, category suggested from the last transaction with the same description, Save & add another, autofocus, Esc to cancel.
 - Savings accounts display as `Bank •••• 1234` (`accountLabel()` in `src/domain/models.ts`).
 - Fixed deposits require a funding savings account for new deposits; the principal reduces that account's balance (computed in SQL, not stored as a transaction, so it does not appear in the transactions list). Saving fails if the balance would go negative (checked against today). Closing a deposit does not return the principal.
+- Year view: Overview, Transactions and report defaults follow a financial-year (Apr to Mar, default) or calendar-year mode (`src/lib/period.ts`, `PeriodToggle`, remembered in localStorage). DB queries take ISO date ranges (`getTransactions(start, end, search)`, `getPeriodSummary`, `getRecentTransactions`).
 - Reports: summary sentence, daily average, largest expense, category donut, weekday chart, monthly and category breakdowns.
 - Settings (tabs): Categories, Backup & import, Account (edit full name, sign out on phones/installed app, delete account with type-DELETE confirmation).
 - Sign out placement is pure CSS: sidebar bottom account block in a normal browser; Settings → Account when `(display-mode: standalone)` or width ≤ 760px.
@@ -54,7 +55,7 @@ The user selected Supabase as the cloud source of truth. Do not create test tran
 
 ## Verification state
 
-- 14 test files, 32 tests pass (`npm test`); `npm run lint` and `npm run build` pass. Tests use a real in-memory SQLite database with a fake Supabase client (`src/test-support/fake-supabase.ts`) and jsdom + Testing Library for components. The SQL functions are not tested outside a real Supabase project.
+- 16 test files, 36 tests pass (`npm test`); `npm run lint` and `npm run build` pass. Tests use a real in-memory SQLite database with a fake Supabase client (`src/test-support/fake-supabase.ts`) and jsdom + Testing Library for components. The SQL functions are not tested outside a real Supabase project.
 - The user confirmed on real devices: the FD funding migration and delete-account work, and the iPad/phone layouts are fine after the responsive fixes.
 - UI was also checked in headless Chromium and WebKit with a fake signed-in session (route-mocked `finance_load_snapshot`, `finance_apply_changes`, and `/auth/v1/**`, plus a `sb-test-auth-token` localStorage entry and a dev server started with fake `SB_URL` / `SB_ANON_KEY`). Chromium cannot emulate `display-mode: standalone`; real installed-app mode was only simulated.
 

@@ -2,7 +2,8 @@ import { useState, type FormEvent } from 'react'
 import { categoryDescendantIds, isIsoDate } from '../../domain/models'
 import { reportInsights, summarizeExpenseReport } from '../../domain/reports'
 import { exportTransactionsCsv } from '../../data/transactions-csv'
-import { CURRENT_DATE, CURRENT_YEAR } from '../../lib/dates'
+import { CURRENT_DATE } from '../../lib/dates'
+import { currentPeriodYear, makePeriod, type PeriodMode } from '../../lib/period'
 import { downloadFile } from '../../lib/format'
 import { useFinance, useFinanceQuery } from '../../app/finance-context'
 
@@ -16,13 +17,23 @@ export const ALL_CATEGORIES = 'all'
 export const UNCATEGORIZED = 'uncategorized'
 
 /** Report filter form state and the derived report; owned by the app shell so filters survive navigation. */
-export function useExpenseReport() {
+export function useExpenseReport(mode: PeriodMode) {
   const { categories, clearNotice, showSuccess, showError } = useFinance()
-  const [reportStartDate, setReportStartDate] = useState(`${CURRENT_YEAR}-01-01`)
+  const periodStart = makePeriod(mode, currentPeriodYear(mode)).startDate
+  const [reportStartDate, setReportStartDate] = useState(periodStart)
   const [reportEndDate, setReportEndDate] = useState(CURRENT_DATE)
   const [reportCategoryId, setReportCategoryId] = useState(ALL_CATEGORIES)
   const [includeReportSubcategories, setIncludeReportSubcategories] = useState(true)
   const [reportFilters, setReportFilters] = useState<ExpenseReportFilters | null>(null)
+
+  // Switching between financial and calendar year restarts the report from the new period's start.
+  const [appliedPeriodStart, setAppliedPeriodStart] = useState(periodStart)
+  if (appliedPeriodStart !== periodStart) {
+    setAppliedPeriodStart(periodStart)
+    setReportStartDate(periodStart)
+    setReportEndDate(CURRENT_DATE)
+    setReportFilters(null)
+  }
   const [reportError, setReportError] = useState('')
 
   const reportTransactions = useFinanceQuery((database) => reportFilters

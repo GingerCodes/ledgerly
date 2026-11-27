@@ -10,6 +10,7 @@ import { DepositsPage } from '../features/deposits/DepositsPage'
 import { OverviewPage } from '../features/overview/OverviewPage'
 import { ReportsPage } from '../features/reports/ReportsPage'
 import { useExpenseReport } from '../features/reports/useExpenseReport'
+import { makePeriod } from '../lib/period'
 import { SettingsPage } from '../features/settings/SettingsPage'
 import { TransactionsPage } from '../features/transactions/TransactionsPage'
 import { AppShell } from './AppShell'
@@ -34,7 +35,7 @@ const snapshot = {
 }
 
 function ReportsHarness() {
-  return <ReportsPage report={useExpenseReport()} onEditTransaction={() => undefined} />
+  return <ReportsPage report={useExpenseReport('financial')} onEditTransaction={() => undefined} />
 }
 
 /** Server-renders each page against a real in-memory database to catch wiring mistakes after refactors. */
@@ -43,10 +44,10 @@ describe('pages render', () => {
     const database = await FinanceDatabase.open(fakeSupabase(snapshot), 'smoke-user')
     const render = (page: React.ReactNode) => renderToString(<FinanceProvider database={database}>{page}</FinanceProvider>)
 
-    expect(render(<OverviewPage year={2026} onYearChange={() => undefined} onNavigate={() => undefined} onEditTransaction={() => undefined} />)).toContain('Cash + savings')
-    const transactions = render(<TransactionsPage year={2026} onYearChange={() => undefined} transactionForm={undefined} onOpenForm={() => undefined} onCloseForm={() => undefined} onSave={async () => undefined} />)
+    expect(render(<OverviewPage period={makePeriod('financial', 2026)} onYearChange={() => undefined} onModeChange={() => undefined} onNavigate={() => undefined} onEditTransaction={() => undefined} />)).toContain('Cash + savings')
+    const transactions = render(<TransactionsPage period={makePeriod('calendar', 2026)} onYearChange={() => undefined} onModeChange={() => undefined} transactionForm={undefined} onOpenForm={() => undefined} onCloseForm={() => undefined} onSave={async () => undefined} />)
     expect(transactions).toContain('Groceries')
-    expect(render(<TransactionsPage year={2026} onYearChange={() => undefined} transactionForm={null} onOpenForm={() => undefined} onCloseForm={() => undefined} onSave={async () => undefined} />)).toContain('add another')
+    expect(render(<TransactionsPage period={makePeriod('calendar', 2026)} onYearChange={() => undefined} onModeChange={() => undefined} transactionForm={null} onOpenForm={() => undefined} onCloseForm={() => undefined} onSave={async () => undefined} />)).toContain('add another')
     expect(render(<ReportsHarness />)).toContain('Generate report')
     expect(render(<AccountsPage />)).toContain('Balance snapshots')
     const deposits = render(<DepositsPage />)

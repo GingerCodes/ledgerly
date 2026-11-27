@@ -637,9 +637,10 @@ export class FinanceDatabase {
     ).map(readCategory)
   }
 
-  getTransactions(year: number, search = ''): Transaction[] {
+  /** Transactions dated from `startDate` to `endDate` inclusive (ISO dates), newest first. */
+  getTransactions(startDate: string, endDate: string, search = ''): Transaction[] {
     const normalizedSearch = search.trim()
-    const params: SqlValue[] = [String(year)]
+    const params: SqlValue[] = [startDate, endDate]
     let searchClause = ''
     if (normalizedSearch) {
       searchClause = ' AND (description LIKE ? OR notes LIKE ?)'
@@ -648,11 +649,15 @@ export class FinanceDatabase {
     }
     return this.rows(
       `SELECT * FROM transactions
-       WHERE substr(date, 1, 4) = ?${searchClause}
+       WHERE date BETWEEN ? AND ?${searchClause}
        ORDER BY date DESC, created_at DESC
        `,
       params,
     ).map(readTransaction)
+  }
+
+  getRecentTransactions(limit: number): Transaction[] {
+    return this.rows('SELECT * FROM transactions ORDER BY date DESC, created_at DESC LIMIT ?', [limit]).map(readTransaction)
   }
 
   getExpenseReportTransactions(
@@ -719,13 +724,14 @@ export class FinanceDatabase {
     ).map(readBalanceSnapshot)
   }
 
-  getYearSummary(year: number): YearSummary {
+  /** Totals for transactions dated from `startDate` to `endDate` inclusive (ISO dates). */
+  getPeriodSummary(startDate: string, endDate: string): YearSummary {
     const rows = this.rows(
       `SELECT type, category_id, SUM(amount_paise) AS amount_paise, COUNT(*) AS count
        FROM transactions
-       WHERE substr(date, 1, 4) = ?
+       WHERE date BETWEEN ? AND ?
        GROUP BY type, category_id`,
-      [String(year)],
+      [startDate, endDate],
     )
     const summary: YearSummary = {
       incomePaise: 0,
