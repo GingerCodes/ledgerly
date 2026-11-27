@@ -3,12 +3,11 @@ import { ChevronRight, LockKeyhole, LogOut, Plus, Wallet } from 'lucide-react'
 import { type Transaction, type TransactionInput } from '../domain/models'
 import { Notice } from '../components/Notice'
 import { AccountsPage } from '../features/accounts/AccountsPage'
-import { BackupPage } from '../features/backup/BackupPage'
-import { CategoriesPage } from '../features/categories/CategoriesPage'
 import { DepositsPage } from '../features/deposits/DepositsPage'
 import { OverviewPage } from '../features/overview/OverviewPage'
 import { ReportsPage } from '../features/reports/ReportsPage'
 import { useExpenseReport } from '../features/reports/useExpenseReport'
+import { SettingsPage } from '../features/settings/SettingsPage'
 import { TransactionForm } from '../features/transactions/TransactionForm'
 import { TransactionsPage } from '../features/transactions/TransactionsPage'
 import { CURRENT_YEAR } from '../lib/dates'
@@ -78,8 +77,7 @@ export function AppShell({ email, onSignOut }: {
           {section === 'reports' && <ReportsPage report={report} onEditTransaction={(item) => { setSection('transactions'); setTransactionForm(item) }} />}
           {section === 'accounts' && <AccountsPage />}
           {section === 'deposits' && <DepositsPage />}
-          {section === 'categories' && <CategoriesPage />}
-          {section === 'backups' && <BackupPage />}
+          {section === 'settings' && <SettingsPage />}
         </main>
         <footer className="app-footer"><span>Ledgerly · Personal Finance Tracker</span><span><LockKeyhole size={13} /> Stored in your private Supabase account</span></footer>
       </div>

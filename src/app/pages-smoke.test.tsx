@@ -10,6 +10,7 @@ import { DepositsPage } from '../features/deposits/DepositsPage'
 import { OverviewPage } from '../features/overview/OverviewPage'
 import { ReportsPage } from '../features/reports/ReportsPage'
 import { useExpenseReport } from '../features/reports/useExpenseReport'
+import { SettingsPage } from '../features/settings/SettingsPage'
 import { TransactionsPage } from '../features/transactions/TransactionsPage'
 import { AppShell } from './AppShell'
 import { FinanceProvider } from './FinanceProvider'
@@ -52,11 +53,13 @@ describe('pages render', () => {
     expect(deposits).toContain('Funded from')
     expect(deposits).toContain('HDFC')
     expect(render(<CategoriesPage />)).toContain('Food')
+    expect(render(<SettingsPage />)).toContain('Backup &amp; import')
     expect(render(<BackupPage />)).toContain('Import transactions from CSV')
 
     const shell = render(<AppShell email="me@example.com" onSignOut={async () => null} />)
     expect(shell).toContain('me@example.com')
     expect(shell).toContain('Fixed deposits')
+    expect(shell).toContain('Settings')
     await database.close()
   })
 })

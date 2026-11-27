@@ -45,7 +45,7 @@ export function BackupPage() {
 
   return (
             <>
-              <section className="page-heading"><div><p className="eyebrow">KEEP YOUR DATA SAFE</p><h1>Backup & import</h1><p className="page-subtitle">Create an encrypted copy or restore from an earlier backup.</p></div></section>
+              <section className="page-heading"><div><p className="eyebrow">KEEP YOUR DATA SAFE</p><h2>Backup & import</h2><p className="page-subtitle">Create an encrypted copy or restore from an earlier backup.</p></div></section>
               <div className="backup-grid">
                 <section className="panel backup-card">
                   <div className="backup-icon"><LockKeyhole size={20} /></div><p className="eyebrow">ENCRYPTED BACKUP</p><h2>Take your data with you</h2><p>Create a password-protected backup file. Keep the passphrase separate; it cannot be recovered if lost.</p>
