@@ -31,10 +31,9 @@ If PostgREST reports `PGRST002` or `pg_pgrst_no_exposed_schemas`, check that `pu
 
 1. Create a Vercel project for this repository. Link the project locally with the Vercel CLI (`vercel link`) to find its `orgId` and `projectId` in `.vercel/project.json`; `.vercel/` is ignored by Git.
 2. In the Vercel project settings, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` as Production environment variables. Use the Supabase project URL and publishable/anon key, never a service-role key.
-3. In the GitHub repository, open Settings → Secrets and variables → Actions and add these repository secrets:
-   - `VERCEL_TOKEN` — create a token in your Vercel account settings.
-   - `VERCEL_ORG_ID` — the `orgId` from `.vercel/project.json`.
-   - `VERCEL_PROJECT_ID` — the `projectId` from `.vercel/project.json`.
+3. In the GitHub repository, open Settings → Secrets and variables → Actions:
+   - Add `VERCEL_TOKEN` as a repository secret. Create the token in your Vercel account settings.
+   - Add `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` as repository variables, using the `orgId` and `projectId` from `.vercel/project.json`.
 4. Push to `main` to run the production deployment, or start **Deploy to Vercel** from the repository's Actions tab. The workflow runs lint, tests, and a production build before deploying the prebuilt output.
 5. In Supabase Authentication URL Configuration, set the deployed app URL as the Site URL and allow the deployed URL as a redirect URL.
 
