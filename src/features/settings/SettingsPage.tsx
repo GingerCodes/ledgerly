@@ -5,6 +5,7 @@ import { settingsTabs } from '../../app/navigation'
 import type { PeriodMode } from '../../lib/period'
 import { AnalyticsPanel } from './AnalyticsPanel'
 import { DeleteAccountPanel } from './DeleteAccountPanel'
+import { AppearancePanel } from './AppearancePanel'
 import { PreferencesPanel } from './PreferencesPanel'
 import { ProfilePanel } from './ProfilePanel'
 import { SignOutPanel } from './SignOutPanel'
@@ -42,6 +43,7 @@ export function SettingsPage({ fullName, email, onSaveName, yearView, onSaveYear
           <>
             <ProfilePanel fullName={fullName} email={email} onSave={onSaveName} />
             <PreferencesPanel yearView={yearView} onSave={onSaveYearView} />
+            <AppearancePanel />
             <SignOutPanel onSignOut={onSignOut} />
             <AnalyticsPanel />
             <DeleteAccountPanel onShowBackup={() => navigate('/settings/backups')} onDeleted={onAccountDeleted} />
