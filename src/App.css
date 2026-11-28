@@ -882,8 +882,8 @@ a.nav-item, a.brand { text-decoration: none; }
 
 .metric-card { position: relative; overflow: hidden; }
 .metric-card.has-spark > :not(.sparkline) { position: relative; }
-.sparkline { position: absolute; right: 0; bottom: 0; left: 0; width: 100%; height: 62%; pointer-events: none; }
-.sparkline-area { fill: rgba(36, 92, 72, .08); }
+.sparkline { position: absolute; right: 8px; bottom: 8px; left: 8px; width: calc(100% - 16px); height: 55%; pointer-events: none; }
+.sparkline-area { fill: url(#spark-fade); }
 .sparkline-line { fill: none; stroke: rgba(36, 92, 72, .22); stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
 .metric-card > .delta, .metric-card > .card-link { display: block; color: #526258; font-size: 12px; white-space: normal; }
 .metric-card > .delta.good { color: #315f44; font-weight: 600; }
@@ -899,3 +899,5 @@ a.nav-item, a.brand { text-decoration: none; }
 .spending-facts dd small { color: #526258; font-size: 12px; font-weight: 400; }
 .upcoming-alert { margin: 0 0 10px; padding: 8px 10px; border-radius: 8px; color: #6b3a30; background: #fbefeb; font-size: 13px; }
 .upcoming-panel .balance-name b, .upcoming-panel .balance-name small { overflow: visible; text-overflow: clip; white-space: normal; }
+.metric-card { border-color: #cfd9d1; box-shadow: 0 1px 2px rgba(30, 50, 40, .06), 0 4px 14px rgba(30, 50, 40, .08); }
+.sparkline-line { stroke: rgba(36, 92, 72, .35); }
