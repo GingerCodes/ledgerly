@@ -9,9 +9,9 @@ import { EmptyState } from '../../components/EmptyState'
 import { CloseDepositForm } from './CloseDepositForm'
 import { DepositForm } from './DepositForm'
 
-export function DepositsPage() {
+export function DepositsPage({ startWithForm = false }: { startWithForm?: boolean }) {
   const { database, accounts, deposits, runAction } = useFinance()
-  const [depositForm, setDepositForm] = useState<FixedDeposit | null | undefined>(undefined)
+  const [depositForm, setDepositForm] = useState<FixedDeposit | null | undefined>(() => (startWithForm ? null : undefined))
   const [closing, setClosing] = useState<FixedDeposit | null>(null)
 
   async function closeDeposit(deposit: FixedDeposit, value: Parameters<FinanceDatabase['closeFixedDeposit']>[1]) {

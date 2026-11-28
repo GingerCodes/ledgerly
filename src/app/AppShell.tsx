@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router'
-import { ChevronRight, LockKeyhole, LogOut, Menu, Plus } from 'lucide-react'
+import { ChevronRight, LockKeyhole, LogOut, Menu } from 'lucide-react'
 import { type Transaction, type TransactionInput } from '../domain/models'
+import { AddMenu, type AddKind } from '../components/AddMenu'
 import { Logo } from '../components/Logo'
 import { MobileMenu } from '../components/MobileMenu'
 import { Notice } from '../components/Notice'
@@ -33,7 +34,8 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName, y
   onUpdateYearView: (mode: PeriodMode) => Promise<Error | null>
 }) {
   const { database, accounts, categories, notice, clearNotice, runAction, showError } = useFinance()
-  const { pathname } = useLocation()
+  const { pathname, key: locationKey, state: locationState } = useLocation()
+  const startWithForm = (locationState as { add?: boolean } | null)?.add === true
   const navigate = useNavigate()
   const mode = yearView
   const [year, setYear] = useState(() => currentPeriodYear(mode))
@@ -48,6 +50,11 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName, y
   // so it disappears when you leave that screen, including with the browser's back button.
   const [openForm, setOpenForm] = useState<{ transaction: Transaction | null; path: string } | null>(null)
   const transactionForm = openForm?.path === pathname ? openForm.transaction : undefined
+  /** Account and deposit pages open their form when navigated to with `state.add`; the key remounts the page on each visit. */
+  const addNew = (kind: AddKind) => {
+    if (kind === 'transaction') { navigate('/transactions'); showForm(null, '/transactions') }
+    else navigate(kind === 'account' ? '/accounts' : '/deposits', { state: { add: true } })
+  }
   const showForm = (transaction: Transaction | null, path = pathname) => setOpenForm({ transaction, path })
   const closeForm = () => setOpenForm(null)
   const report = useExpenseReport(mode)
@@ -114,7 +121,7 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName, y
           <div className="mobile-brand"><span className="brand-mark"><Logo /></span> Ledgerly</div>
           <div className="breadcrumb">Finance <ChevronRight size={14} /> <strong>{activeSection?.label}</strong></div>
           <div className="topbar-right">
-            <button className="button button-primary top-add" onClick={() => { navigate('/transactions'); showForm(null, '/transactions') }}><Plus size={16} /> Add transaction</button>
+            <AddMenu onAdd={addNew} />
           </div>
         </header>
 
@@ -124,8 +131,8 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName, y
             <Route path="/overview" element={<OverviewPage onNavigate={(section: Section) => navigate(`/${section}`)} onEditTransaction={(transaction) => showForm(transaction)} />} />
             <Route path="/transactions" element={<TransactionsPage period={period} onYearChange={setYear} transactionForm={transactionForm} onOpenForm={showForm} onCloseForm={closeForm} onSave={saveTransaction} />} />
             <Route path="/reports" element={<ReportsPage report={report} onEditTransaction={(item) => { navigate('/transactions'); showForm(item, '/transactions') }} />} />
-            <Route path="/accounts" element={<AccountsPage />} />
-            <Route path="/deposits" element={<DepositsPage />} />
+            <Route path="/accounts" element={<AccountsPage key={locationKey} startWithForm={startWithForm} />} />
+            <Route path="/deposits" element={<DepositsPage key={locationKey} startWithForm={startWithForm} />} />
             <Route path="/settings" element={<Navigate to="/settings/categories" replace />} />
             <Route path="/settings/:tab" element={<SettingsPage fullName={fullName} email={email} onSaveName={onUpdateName} yearView={yearView} onSaveYearView={onUpdateYearView} onSignOut={() => void signOut()} onAccountDeleted={() => onSignOut({ local: true })} />} />
             <Route path="*" element={<Navigate to="/overview" replace />} />
