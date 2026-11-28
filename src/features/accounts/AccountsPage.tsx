@@ -9,6 +9,7 @@ import { maskAccountNumber } from '../../lib/format'
 import type { FinanceDatabase } from '../../data/finance-database'
 import { AnimatedRupees } from '../../components/AnimatedRupees'
 import { EmptyState } from '../../components/EmptyState'
+import { ScrollIntoView } from '../../components/ScrollIntoView'
 import { AccountForm } from './AccountForm'
 import { SnapshotRow } from './SnapshotRow'
 
@@ -72,7 +73,7 @@ export function AccountsPage({ startWith }: { startWith?: 'account' | 'deposit' 
               </section>
               <section className="account-section">
                 <div className="section-head"><div><h2>Savings accounts</h2><p>{summary.savingsCount} account{summary.savingsCount === 1 ? '' : 's'} · {formatRupees(summary.savingsPaise)}</p></div><button className="button button-primary" onClick={() => setAccountForm(null)}><Plus size={16} /> Add savings account</button></div>
-                {accountForm !== undefined && <AccountForm key={accountForm?.id ?? 'new-account'} account={accountForm} onCancel={() => setAccountForm(undefined)} onSave={createAccount} />}
+                {accountForm !== undefined && <ScrollIntoView key={accountForm?.id ?? 'new-account'}><AccountForm account={accountForm} onCancel={() => setAccountForm(undefined)} onSave={createAccount} /></ScrollIntoView>}
                 {savings.length ? <div className="account-card-grid">
                   {savings.map((account) => (
                   <article className="account-card" key={account.id}>
