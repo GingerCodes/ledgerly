@@ -1,19 +1,19 @@
 import { ChartNoAxesCombined } from 'lucide-react'
-import { categoryPath, type Transaction } from '../../domain/models'
+import { accountLabel, categoryPath, type Transaction } from '../../domain/models'
 import { useFinance } from '../../app/finance-context'
 import { ComboBox } from '../../components/ComboBox'
 import { EmptyState } from '../../components/EmptyState'
-import { ALL_CATEGORIES, UNCATEGORIZED, type ExpenseReport } from './useExpenseReport'
+import { ALL_ACCOUNTS, ALL_CATEGORIES, UNCATEGORIZED, type ExpenseReport } from './useExpenseReport'
 import { ReportResults } from './ReportResults'
 
 export function ReportsPage({ report, onEditTransaction }: {
   report: ExpenseReport
   onEditTransaction: (transaction: Transaction) => void
 }) {
-  const { categories } = useFinance()
+  const { accounts, categories } = useFinance()
   const {
     reportStartDate, setReportStartDate, reportEndDate, setReportEndDate,
-    reportCategoryId, setReportCategoryId, includeReportSubcategories, setIncludeReportSubcategories,
+    reportAccountId, setReportAccountId, reportCategoryId, setReportCategoryId, includeReportSubcategories, setIncludeReportSubcategories,
     reportFilters, reportError, generateExpenseReport,
   } = report
 
@@ -23,7 +23,7 @@ export function ReportsPage({ report, onEditTransaction }: {
                 <div>
                   <p className="eyebrow">EXPENSE ANALYSIS</p>
                   <h1>Reports</h1>
-                  <p className="page-subtitle">Summarize category spending for any date range.</p>
+                  <p className="page-subtitle">Summarize category spending for any date range, account and category.</p>
                 </div>
               </section>
               <section className="panel report-filter-panel">
@@ -31,6 +31,12 @@ export function ReportsPage({ report, onEditTransaction }: {
                   <div className="report-filter-grid">
                     <label>From date<input required type="date" value={reportStartDate} onChange={(event) => setReportStartDate(event.target.value)} /></label>
                     <label>To date<input required type="date" value={reportEndDate} onChange={(event) => setReportEndDate(event.target.value)} /></label>
+                    <label>Account
+                      <select value={reportAccountId} onChange={(event) => setReportAccountId(event.target.value)}>
+                        <option value={ALL_ACCOUNTS}>All accounts</option>
+                        {accounts.map((account) => <option key={account.id} value={account.id}>{accountLabel(account)}</option>)}
+                      </select>
+                    </label>
                     <ComboBox label="Category" options={[{ id: ALL_CATEGORIES, label: 'All categories' }, { id: UNCATEGORIZED, label: 'Uncategorized' }, ...categories.map((category) => ({ id: category.id, label: categoryPath(category.id, categories) })).sort((first, second) => first.label.localeCompare(second.label))]} value={reportCategoryId} onChange={setReportCategoryId} placeholder="Search categories" />
                     <label className="report-checkbox">
                       <input

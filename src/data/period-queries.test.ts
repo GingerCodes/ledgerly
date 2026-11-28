@@ -30,4 +30,16 @@ describe('period queries', () => {
     expect(database.getRecentTransactions(2).map((item) => item.id)).toEqual(['after', 'last'])
     await database.close()
   })
+
+  it('can limit the expense report to one account', async () => {
+    const withAccount = (id: string, accountId: string, amount: number) => ({ ...tx(id, '2026-05-01', 'expense', amount), account_id: accountId })
+    const database = await FinanceDatabase.open(fakeSupabase({
+      transactions: [withAccount('cash', 'CASH', 100), withAccount('bank', 'SB1', 700), { ...tx('salary', '2026-05-02', 'income', 9000), account_id: 'SB1' }],
+    }), 'report-account-user')
+    const ids = (accountId: string | null) => database.getExpenseReportTransactions('2026-04-01', '2027-03-31', null, accountId).map((item) => item.id).sort()
+    expect(ids(null)).toEqual(['bank', 'cash'])
+    expect(ids('SB1')).toEqual(['bank'])
+    expect(ids('CASH')).toEqual(['cash'])
+    await database.close()
+  })
 })

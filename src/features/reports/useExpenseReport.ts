@@ -12,9 +12,12 @@ export type ExpenseReportFilters = {
   endDate: string
   categoryId: string | null
   includeSubcategories: boolean
+  /** Null means every account. */
+  accountId: string | null
 }
 export const ALL_CATEGORIES = 'all'
 export const UNCATEGORIZED = 'uncategorized'
+export const ALL_ACCOUNTS = 'all'
 
 /** Report filter form state and the derived report; owned by the app shell so filters survive navigation. */
 export function useExpenseReport(mode: PeriodMode) {
@@ -24,6 +27,7 @@ export function useExpenseReport(mode: PeriodMode) {
   const [reportEndDate, setReportEndDate] = useState(CURRENT_DATE)
   const [reportCategoryId, setReportCategoryId] = useState(ALL_CATEGORIES)
   const [includeReportSubcategories, setIncludeReportSubcategories] = useState(true)
+  const [reportAccountId, setReportAccountId] = useState(ALL_ACCOUNTS)
   const [reportFilters, setReportFilters] = useState<ExpenseReportFilters | null>(null)
 
   // Switching between financial and calendar year restarts the report from the new period's start.
@@ -47,6 +51,7 @@ export function useExpenseReport(mode: PeriodMode) {
           : reportFilters.includeSubcategories
             ? categoryDescendantIds(reportFilters.categoryId, database.getCategories())
             : [reportFilters.categoryId],
+      reportFilters.accountId,
     )
     : [], [reportFilters])
   const reportSummary = summarizeExpenseReport(reportTransactions, categories)
@@ -66,6 +71,7 @@ export function useExpenseReport(mode: PeriodMode) {
       endDate: reportEndDate,
       categoryId: reportCategoryId === ALL_CATEGORIES ? null : reportCategoryId,
       includeSubcategories: includeReportSubcategories,
+      accountId: reportAccountId === ALL_ACCOUNTS ? null : reportAccountId,
     })
   }
 
@@ -85,7 +91,7 @@ export function useExpenseReport(mode: PeriodMode) {
 
   return {
     reportStartDate, setReportStartDate, reportEndDate, setReportEndDate,
-    reportCategoryId, setReportCategoryId, includeReportSubcategories, setIncludeReportSubcategories,
+    reportAccountId, setReportAccountId, reportCategoryId, setReportCategoryId, includeReportSubcategories, setIncludeReportSubcategories,
     reportFilters, reportError, reportTransactions, reportSummary, insights,
     generateExpenseReport, exportExpenseReport,
   }
