@@ -126,6 +126,7 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName, y
 
         <main className="page-content">
           <Notice error={notice.error} success={notice.success} />
+          <div className="page-transition" key={activeSection?.id ?? pathname}>
           <Routes>
             <Route path="/overview" element={<OverviewPage onNavigate={(section: Section) => navigate(`/${section}`)} onEditTransaction={(transaction) => showForm(transaction)} />} />
             <Route path="/transactions" element={<TransactionsPage period={period} onYearChange={setYear} transactionForm={transactionForm} onOpenForm={showForm} onCloseForm={closeForm} onSave={saveTransaction} />} />
@@ -136,6 +137,7 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName, y
             <Route path="/settings/:tab" element={<SettingsPage fullName={fullName} email={email} onSaveName={onUpdateName} yearView={yearView} onSaveYearView={onUpdateYearView} onSignOut={() => void signOut()} onAccountDeleted={() => onSignOut({ local: true })} />} />
             <Route path="*" element={<Navigate to="/overview" replace />} />
           </Routes>
+          </div>
         </main>
         <footer className="app-footer"><span>Ledgerly · Personal Finance Tracker · <span title="Release and commit this build was made from">{appVersion}</span></span><span><LockKeyhole size={13} /> Stored in your private account</span></footer>
       </div>

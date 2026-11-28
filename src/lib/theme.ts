@@ -1,3 +1,5 @@
+import { prefersReducedMotion } from './motion'
+
 /** Mode: light, dark, or follow the device. */
 export type Theme = 'system' | 'light' | 'dark'
 /** Palette: the set of colours, each with a light and a dark mode. */
@@ -63,13 +65,23 @@ export function applyTheme(theme: Theme, palette: Palette = loadPalette()): void
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', BROWSER_COLOR[palette][mode])
 }
 
+/** Briefly lets colours transition, so changing the theme fades instead of snapping. */
+function fadeColours(): void {
+  if (prefersReducedMotion()) return
+  const root = document.documentElement
+  root.classList.add('theme-fading')
+  setTimeout(() => root.classList.remove('theme-fading'), 450)
+}
+
 export function saveTheme(theme: Theme): void {
   write(MODE_KEY, theme)
+  fadeColours()
   applyTheme(theme)
 }
 
 export function savePalette(palette: Palette): void {
   write(PALETTE_KEY, palette)
+  fadeColours()
   applyTheme(loadTheme(), palette)
 }
 

@@ -1,0 +1,171 @@
+/* Motion. Everything here is switched off for people who ask their device for reduced motion (see the end of this file). */
+:root {
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --dur-fast: 140ms;
+  --dur: 240ms;
+  --dur-slow: 420ms;
+}
+
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pop { from { opacity: 0; transform: scale(.92) translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes slide-in-left { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes slide-out-left { from { transform: none; } to { transform: translateX(-100%); } }
+@keyframes toast-in { from { opacity: 0; transform: translateY(16px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@keyframes shake { 0%, 100% { transform: none; } 20% { transform: translateX(-5px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(3px); } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes check-pop { 0% { transform: scale(0); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
+@keyframes bar-slide { from { transform: translateX(-100%); } to { transform: translateX(350%); } }
+
+@property --sweep { syntax: '<angle>'; inherits: false; initial-value: 360deg; }
+@keyframes sweep { from { --sweep: 0deg; } to { --sweep: 360deg; } }
+
+/* Screens fade and rise in when you move between sections. */
+.page-transition { animation: rise var(--dur-slow) var(--ease-out) backwards; }
+
+/* Cards, rows and tiles arrive one after another (the first ten; the rest appear together). */
+.metric-grid > *, .dashboard-grid > *, .account-card-grid > *, .deposit-grid > *, .data-table tbody tr, .report-category-row, .spending-item {
+  animation: rise var(--dur-slow) var(--ease-out) backwards;
+  animation-delay: calc(var(--stagger, 10) * 45ms);
+}
+.metric-grid > *:nth-child(1) { --stagger: 0; }
+.metric-grid > *:nth-child(2) { --stagger: 1; }
+.metric-grid > *:nth-child(3) { --stagger: 2; }
+.metric-grid > *:nth-child(4) { --stagger: 3; }
+.metric-grid > *:nth-child(5) { --stagger: 4; }
+.metric-grid > *:nth-child(6) { --stagger: 5; }
+.metric-grid > *:nth-child(7) { --stagger: 6; }
+.metric-grid > *:nth-child(8) { --stagger: 7; }
+.metric-grid > *:nth-child(9) { --stagger: 8; }
+.metric-grid > *:nth-child(10) { --stagger: 9; }
+.dashboard-grid > *:nth-child(1) { --stagger: 0; }
+.dashboard-grid > *:nth-child(2) { --stagger: 1; }
+.dashboard-grid > *:nth-child(3) { --stagger: 2; }
+.dashboard-grid > *:nth-child(4) { --stagger: 3; }
+.dashboard-grid > *:nth-child(5) { --stagger: 4; }
+.dashboard-grid > *:nth-child(6) { --stagger: 5; }
+.dashboard-grid > *:nth-child(7) { --stagger: 6; }
+.dashboard-grid > *:nth-child(8) { --stagger: 7; }
+.dashboard-grid > *:nth-child(9) { --stagger: 8; }
+.dashboard-grid > *:nth-child(10) { --stagger: 9; }
+.account-card-grid > *:nth-child(1) { --stagger: 0; }
+.account-card-grid > *:nth-child(2) { --stagger: 1; }
+.account-card-grid > *:nth-child(3) { --stagger: 2; }
+.account-card-grid > *:nth-child(4) { --stagger: 3; }
+.account-card-grid > *:nth-child(5) { --stagger: 4; }
+.account-card-grid > *:nth-child(6) { --stagger: 5; }
+.account-card-grid > *:nth-child(7) { --stagger: 6; }
+.account-card-grid > *:nth-child(8) { --stagger: 7; }
+.account-card-grid > *:nth-child(9) { --stagger: 8; }
+.account-card-grid > *:nth-child(10) { --stagger: 9; }
+.deposit-grid > *:nth-child(1) { --stagger: 0; }
+.deposit-grid > *:nth-child(2) { --stagger: 1; }
+.deposit-grid > *:nth-child(3) { --stagger: 2; }
+.deposit-grid > *:nth-child(4) { --stagger: 3; }
+.deposit-grid > *:nth-child(5) { --stagger: 4; }
+.deposit-grid > *:nth-child(6) { --stagger: 5; }
+.deposit-grid > *:nth-child(7) { --stagger: 6; }
+.deposit-grid > *:nth-child(8) { --stagger: 7; }
+.deposit-grid > *:nth-child(9) { --stagger: 8; }
+.deposit-grid > *:nth-child(10) { --stagger: 9; }
+.data-table tbody tr:nth-child(1) { --stagger: 0; }
+.data-table tbody tr:nth-child(2) { --stagger: 1; }
+.data-table tbody tr:nth-child(3) { --stagger: 2; }
+.data-table tbody tr:nth-child(4) { --stagger: 3; }
+.data-table tbody tr:nth-child(5) { --stagger: 4; }
+.data-table tbody tr:nth-child(6) { --stagger: 5; }
+.data-table tbody tr:nth-child(7) { --stagger: 6; }
+.data-table tbody tr:nth-child(8) { --stagger: 7; }
+.data-table tbody tr:nth-child(9) { --stagger: 8; }
+.data-table tbody tr:nth-child(10) { --stagger: 9; }
+.report-category-row:nth-child(1) { --stagger: 0; }
+.report-category-row:nth-child(2) { --stagger: 1; }
+.report-category-row:nth-child(3) { --stagger: 2; }
+.report-category-row:nth-child(4) { --stagger: 3; }
+.report-category-row:nth-child(5) { --stagger: 4; }
+.report-category-row:nth-child(6) { --stagger: 5; }
+.report-category-row:nth-child(7) { --stagger: 6; }
+.report-category-row:nth-child(8) { --stagger: 7; }
+.report-category-row:nth-child(9) { --stagger: 8; }
+.report-category-row:nth-child(10) { --stagger: 9; }
+.spending-item:nth-child(1) { --stagger: 0; }
+.spending-item:nth-child(2) { --stagger: 1; }
+.spending-item:nth-child(3) { --stagger: 2; }
+.spending-item:nth-child(4) { --stagger: 3; }
+.spending-item:nth-child(5) { --stagger: 4; }
+.spending-item:nth-child(6) { --stagger: 5; }
+.spending-item:nth-child(7) { --stagger: 6; }
+.spending-item:nth-child(8) { --stagger: 7; }
+.spending-item:nth-child(9) { --stagger: 8; }
+.spending-item:nth-child(10) { --stagger: 9; }
+
+/* Charts draw in. */
+.sparkline { animation: wipe 1s var(--ease-out) 150ms backwards; }
+.report-donut {
+  -webkit-mask-image: conic-gradient(#000 var(--sweep), transparent 0);
+  mask-image: conic-gradient(#000 var(--sweep), transparent 0);
+  animation: sweep 900ms var(--ease-out) 200ms backwards;
+}
+.progress-track span, .report-bar-track span { transform-origin: left center; animation: grow 700ms var(--ease-out) 250ms backwards; }
+
+/* Overlays and messages. */
+.form-card { animation: rise var(--dur) var(--ease-out) backwards; }
+.menu-backdrop { animation: fade var(--dur) ease-out backwards; }
+.mobile-menu { animation: slide-in-left var(--dur) var(--ease-out) backwards; }
+.menu-backdrop[data-closing] { animation: fade var(--dur-fast) ease-in reverse forwards; }
+.menu-backdrop[data-closing] .mobile-menu { animation: slide-out-left var(--dur-fast) ease-in forwards; }
+.add-popup { transform-origin: top right; animation: pop var(--dur) var(--ease-spring) backwards; }
+.combo-list { transform-origin: top; animation: pop var(--dur-fast) var(--ease-out) backwards; }
+.modal-backdrop { animation: fade var(--dur) ease-out backwards; }
+.modal-content { animation: pop var(--dur) var(--ease-spring) backwards; }
+.toast-stack > * { animation: toast-in var(--dur-slow) var(--ease-spring) backwards; }
+.notice { animation: rise var(--dur) var(--ease-out) backwards; }
+.notice-error { animation: rise var(--dur) var(--ease-out) backwards, shake 420ms ease-in-out 120ms; }
+.notice-success { display: flex; align-items: center; gap: 8px; }
+.check-icon { flex: none; animation: check-pop 420ms var(--ease-spring) backwards; }
+.check-icon path { stroke-dasharray: 24; stroke-dashoffset: 24; animation: draw 360ms ease-out 180ms forwards; }
+.add-caret svg { transition: transform var(--dur) var(--ease-spring); }
+.add-caret[aria-expanded='true'] svg { transform: rotate(180deg); }
+
+/* Controls respond to touch and pointer. */
+.segmented-pill { transition: transform var(--dur) var(--ease-spring), background var(--dur); }
+.segmented button, .settings-tabs button, .status-pill { transition: color var(--dur) var(--ease-out), background-color var(--dur) var(--ease-out); }
+.button:active:not(:disabled), .icon-button:active, .text-button:active, .menu-button:active { transform: scale(.96); transition-duration: 60ms; }
+.nav-item:active { transform: scale(.98); }
+.nav-item svg { transition: transform var(--dur) var(--ease-spring); }
+.data-table tbody tr { transition: background-color var(--dur-fast); }
+.data-table tbody tr:hover { background: var(--bg-f7faf7); }
+@media (hover: hover) and (pointer: fine) {
+  .button-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--glow), 0 6px 16px rgba(0, 0, 0, .08); }
+  .nav-item:hover svg { transform: scale(1.12) rotate(-4deg); }
+  .metric-card, .account-card, .deposit-card, .panel { transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out), border-color var(--dur); }
+  .metric-card:hover, .account-card:hover, .deposit-card:hover { transform: translateY(-3px); box-shadow: 0 14px 32px rgba(30, 40, 50, .12); }
+}
+
+/* Loading. */
+.loading-mark { animation: breathe 1.8s ease-in-out infinite; }
+.loading-bar { position: relative; width: 140px; height: 4px; margin-top: 18px; overflow: hidden; border-radius: 4px; background: var(--line); }
+.loading-bar::after { content: ''; position: absolute; inset: 0 auto 0 0; width: 30%; border-radius: 4px; background: var(--gradient-primary); animation: bar-slide 1.1s ease-in-out infinite; }
+
+/* A moment of colour while the theme changes (the class is added briefly by the theme code). */
+html.theme-fading, html.theme-fading *, html.theme-fading *::before, html.theme-fading *::after {
+  transition: background-color .35s ease, color .35s ease, border-color .35s ease, fill .35s ease, stroke .35s ease, box-shadow .35s ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .loading-mark { animation: none !important; }
+  .loading-bar::after { animation: none !important; width: 100%; }
+  .report-donut { -webkit-mask-image: none; mask-image: none; }
+}

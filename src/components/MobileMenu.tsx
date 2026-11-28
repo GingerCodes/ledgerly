@@ -1,11 +1,21 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { NavLink } from 'react-router'
 import { X } from 'lucide-react'
 import type { SectionLink } from '../app/navigation'
+import { prefersReducedMotion } from '../lib/motion'
 
 /** The phone menu: a panel sliding in from the left with the sections that do not fit in the bottom bar. */
-export function MobileMenu({ items, onClose }: { items: SectionLink[]; onClose: () => void }) {
+export function MobileMenu({ items, onClose: closeNow }: { items: SectionLink[]; onClose: () => void }) {
   const closeRef = useRef<HTMLButtonElement>(null)
+  const [closing, setClosing] = useState(false)
+  // Slide out before unmounting; with reduced motion (or in tests) close at once.
+  const onClose = useCallback(() => {
+    if (prefersReducedMotion()) closeNow()
+    else {
+      setClosing(true)
+      setTimeout(closeNow, 140)
+    }
+  }, [closeNow])
 
   useEffect(() => closeRef.current?.focus(), [])
   useEffect(() => {
@@ -15,7 +25,7 @@ export function MobileMenu({ items, onClose }: { items: SectionLink[]; onClose: 
   }, [onClose])
 
   return (
-    <div className="menu-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
+    <div className="menu-backdrop" data-closing={closing ? '' : undefined} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
       <div id="mobile-menu" className="mobile-menu" role="dialog" aria-modal="true" aria-label="Menu">
         <div className="mobile-menu-head">
           <strong>Menu</strong>

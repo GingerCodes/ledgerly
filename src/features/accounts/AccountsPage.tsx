@@ -7,6 +7,7 @@ import { FixedDepositsSection } from '../deposits/FixedDepositsSection'
 import { todayIso } from '../../lib/dates'
 import { maskAccountNumber } from '../../lib/format'
 import type { FinanceDatabase } from '../../data/finance-database'
+import { AnimatedRupees } from '../../components/AnimatedRupees'
 import { EmptyState } from '../../components/EmptyState'
 import { AccountForm } from './AccountForm'
 import { SnapshotRow } from './SnapshotRow'
@@ -50,9 +51,9 @@ export function AccountsPage({ startWith }: { startWith?: 'account' | 'deposit' 
             <>
               <section className="page-heading"><div><p className="eyebrow">CASH, SAVINGS & DEPOSITS</p><h1>Accounts</h1><p className="page-subtitle">Everything you hold, in one place.</p></div></section>
               <section className="metric-grid summary-grid">
-                <article className="metric-card"><div className="metric-label"><span className="metric-icon green"><PiggyBank size={18} /></span> Savings accounts</div><strong>{formatRupees(summary.savingsPaise)}</strong><small className="delta">{summary.savingsCount} account{summary.savingsCount === 1 ? '' : 's'}</small></article>
-                <article className="metric-card"><div className="metric-label"><span className="metric-icon purple"><BriefcaseBusiness size={18} /></span> Fixed deposits</div><strong>{formatRupees(summary.depositsPaise)}</strong><small className="delta">{summary.depositCount} active deposit{summary.depositCount === 1 ? '' : 's'}</small></article>
-                <article className="metric-card"><div className="metric-label"><span className="metric-icon blue"><Wallet size={18} /></span> Savings + deposits</div><strong>{formatRupees(summary.totalPaise)}</strong><small className="delta">Cash is shown separately below</small></article>
+                <article className="metric-card"><div className="metric-label"><span className="metric-icon green"><PiggyBank size={18} /></span> Savings accounts</div><strong><AnimatedRupees paise={summary.savingsPaise} /></strong><small className="delta">{summary.savingsCount} account{summary.savingsCount === 1 ? '' : 's'}</small></article>
+                <article className="metric-card"><div className="metric-label"><span className="metric-icon purple"><BriefcaseBusiness size={18} /></span> Fixed deposits</div><strong><AnimatedRupees paise={summary.depositsPaise} /></strong><small className="delta">{summary.depositCount} active deposit{summary.depositCount === 1 ? '' : 's'}</small></article>
+                <article className="metric-card"><div className="metric-label"><span className="metric-icon blue"><Wallet size={18} /></span> Savings + deposits</div><strong><AnimatedRupees paise={summary.totalPaise} /></strong><small className="delta">Cash is shown separately below</small></article>
               </section>
               <section className="account-section">
                 <div className="section-head"><div><h2>Cash</h2></div></div>
