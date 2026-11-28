@@ -44,7 +44,7 @@ describe('pages render', () => {
     const database = await FinanceDatabase.open(fakeSupabase(snapshot), 'smoke-user')
     const render = (page: React.ReactNode, path = '/') => renderToString(<MemoryRouter initialEntries={[path]}><FinanceProvider database={database}>{page}</FinanceProvider></MemoryRouter>)
 
-    expect(render(<OverviewPage period={makePeriod('financial', 2026)} onYearChange={() => undefined} onNavigate={() => undefined} onEditTransaction={() => undefined} />)).toContain('Net worth')
+    expect(render(<OverviewPage onNavigate={() => undefined} onEditTransaction={() => undefined} />)).toContain('Net worth')
     const transactions = render(<TransactionsPage period={makePeriod('calendar', 2026)} onYearChange={() => undefined} transactionForm={undefined} onOpenForm={() => undefined} onCloseForm={() => undefined} onSave={async () => undefined} />)
     expect(transactions).toContain('Groceries')
     expect(render(<TransactionsPage period={makePeriod('calendar', 2026)} onYearChange={() => undefined} transactionForm={null} onOpenForm={() => undefined} onCloseForm={() => undefined} onSave={async () => undefined} />)).toContain('add another')

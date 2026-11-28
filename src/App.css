@@ -880,3 +880,7 @@ input[list]::-webkit-calendar-picker-indicator { display: none !important; }
 
 /* Navigation items are links now: keep the button look */
 a.nav-item, a.brand { text-decoration: none; }
+
+.month-picker { display: flex; align-items: center; gap: 6px; }
+.month-picker input { min-height: 40px; padding: 0 10px; border: 1px solid #66766b; border-radius: 8px; background: #fff; color: #293a30; font: inherit; }
+.month-picker .icon-button:disabled { opacity: 0.4; }
