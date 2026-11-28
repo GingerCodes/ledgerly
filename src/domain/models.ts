@@ -72,6 +72,8 @@ export interface FixedDeposit {
   fundingAccountId: string | null
   maturityInstruction: string
   status: 'active' | 'matured' | 'closed'
+  /** When it was closed (`YYYY-MM-DD`); null while open and for deposits closed before this was recorded. */
+  closedDate: string | null
   notes: string
   createdAt: string
   updatedAt: string
@@ -261,4 +263,9 @@ export function estimateFixedDepositMaturityValue(fd: FixedDeposit): number {
     throw new Error('This fixed-deposit estimate exceeds the supported amount range.')
   }
   return estimate
+}
+
+/** When a closed deposit's money came back; older closed deposits fall back to the day they were last updated. */
+export function closedDateOf(deposit: Pick<FixedDeposit, 'closedDate' | 'updatedAt'>): string {
+  return deposit.closedDate ?? deposit.updatedAt.slice(0, 10)
 }
