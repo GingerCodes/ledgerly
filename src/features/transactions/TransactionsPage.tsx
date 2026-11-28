@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Download, Plus, Search } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Download, Plus, Search, X } from 'lucide-react'
 import { type Transaction, type TransactionInput } from '../../domain/models'
 import { useFinance, useFinanceQuery } from '../../app/finance-context'
 import { makePeriod, periodYearOptions, type Period } from '../../lib/period'
@@ -20,6 +20,8 @@ export function TransactionsPage({ period, onYearChange, transactionForm, onOpen
 }) {
   const { database, accounts, categories, showSuccess, showError } = useFinance()
   const [transactionSearch, setTransactionSearch] = useState('')
+  const searchRef = useRef<HTMLInputElement>(null)
+  const clearSearch = () => { setTransactionSearch(''); searchRef.current?.focus() }
   // Suggestions come from recent history across all periods, not just the rows on screen (a new financial year starts empty).
   const suggestions = useFinanceQuery((db) => db.getRecentTransactions(500), [])
   const transactions = useFinanceQuery((db) => db.getTransactions(period.startDate, period.endDate, transactionSearch), [period.startDate, period.endDate, transactionSearch])
@@ -46,7 +48,7 @@ export function TransactionsPage({ period, onYearChange, transactionForm, onOpen
                 <div className="list-toolbar">
                   <div className="list-title"><h2>All transactions</h2><span className="count-pill">{transactions.length}</span></div>
                   <div className="toolbar-controls">
-                    <label className="search-field"><Search size={16} /><input value={transactionSearch} onChange={(event) => setTransactionSearch(event.target.value)} placeholder="Search descriptions" /></label>
+                    <label className="search-field"><Search size={16} /><input ref={searchRef} value={transactionSearch} onChange={(event) => setTransactionSearch(event.target.value)} onKeyDown={(event) => { if (event.key === 'Escape' && transactionSearch) { event.stopPropagation(); clearSearch() } }} placeholder="Search descriptions" aria-label="Search descriptions" />{transactionSearch && <button type="button" className="search-clear" aria-label="Clear search" onClick={clearSearch}><X size={14} /></button>}</label>
                     <select className="year-select" aria-label="Period" value={period.year} onChange={(event) => onYearChange(Number(event.target.value))}>{periodYearOptions(period.mode).map((value) => <option key={value} value={value}>{makePeriod(period.mode, value).label}</option>)}</select>
                     <button className="button button-secondary" onClick={exportYearCsv}><Download size={15} /> Export {period.label}</button>
                   </div>

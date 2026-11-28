@@ -916,3 +916,7 @@ a.nav-item, a.brand { text-decoration: none; }
 .palette-swatches { display: flex; gap: 4px; }
 .palette-swatches i { width: 22px; height: 22px; border: 1px solid rgba(128, 128, 128, .35); border-radius: 50%; }
 .button-primary:disabled { box-shadow: none; }
+.search-clear { display: inline-grid; flex: none; width: 24px; height: 24px; place-items: center; padding: 0; border: 0; border-radius: 50%; color: var(--tx-596a60); background: transparent; cursor: pointer; }
+.search-clear:hover { color: var(--ink); background: rgba(128, 128, 128, .18); }
+.search-clear:focus-visible { outline: 2px solid var(--ln-91b79d); outline-offset: 1px; }
+@media (max-width: 760px) { .search-clear { width: 32px; height: 32px; } }
