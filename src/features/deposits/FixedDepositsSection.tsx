@@ -7,6 +7,7 @@ import { CURRENT_DATE } from '../../lib/dates'
 import { maskAccountNumber } from '../../lib/format'
 import type { FinanceDatabase } from '../../data/finance-database'
 import { EmptyState } from '../../components/EmptyState'
+import { ScrollIntoView } from '../../components/ScrollIntoView'
 import { CloseDepositForm } from './CloseDepositForm'
 import { DepositForm } from './DepositForm'
 import { RecordInterestForm } from './RecordInterestForm'
@@ -43,12 +44,12 @@ export function FixedDepositsSection({ startWithForm = false }: { startWithForm?
   return (
             <section className="account-section">
               <div className="section-head"><div><h2>Fixed deposits</h2><p>{openCount} active · {formatRupees(openPaise)}</p></div><button className="button button-primary" onClick={() => setDepositForm(null)}><Plus size={16} /> Add deposit</button></div>
-              {depositForm !== undefined && <DepositForm key={depositForm?.id ?? 'new-deposit'} deposit={depositForm} accounts={accounts} onCancel={() => setDepositForm(undefined)} onSave={createDeposit} />}
+              {depositForm !== undefined && <ScrollIntoView key={depositForm?.id ?? 'new-deposit'}><DepositForm deposit={depositForm} accounts={accounts} onCancel={() => setDepositForm(undefined)} onSave={createDeposit} /></ScrollIntoView>}
               {recording && (() => {
                 const next = fdPayoutSummary(recording, CURRENT_DATE, transactions)
-                return <RecordInterestForm key={recording.id} deposit={recording} accounts={accounts} defaultDate={next.due[0]?.dueDate ?? CURRENT_DATE} defaultAmountPaise={next.due[0]?.amountPaise ?? next.perPayoutPaise} onCancel={() => setRecording(null)} onSave={(value) => recordInterest(recording, value)} />
+                return <ScrollIntoView key={recording.id}><RecordInterestForm deposit={recording} accounts={accounts} defaultDate={next.due[0]?.dueDate ?? CURRENT_DATE} defaultAmountPaise={next.due[0]?.amountPaise ?? next.perPayoutPaise} onCancel={() => setRecording(null)} onSave={(value) => recordInterest(recording, value)} /></ScrollIntoView>
               })()}
-              {closing && <CloseDepositForm key={closing.id} deposit={closing} suggestedInterestPaise={closing.interestType === 'payout' ? fdPayoutSummary(closing, CURRENT_DATE, transactions).due.reduce((sum, item) => sum + item.amountPaise, 0) : undefined} accounts={accounts} onCancel={() => setClosing(null)} onSave={(value) => closeDeposit(closing, value)} />}
+              {closing && <ScrollIntoView key={closing.id}><CloseDepositForm deposit={closing} suggestedInterestPaise={closing.interestType === 'payout' ? fdPayoutSummary(closing, CURRENT_DATE, transactions).due.reduce((sum, item) => sum + item.amountPaise, 0) : undefined} accounts={accounts} onCancel={() => setClosing(null)} onSave={(value) => closeDeposit(closing, value)} /></ScrollIntoView>}
               {deposits.length ? <section className="deposit-grid">{deposits.map((deposit) => {
                 const matured = deposit.status === 'active' && deposit.maturityDate < CURRENT_DATE
                 let estimate = ''
