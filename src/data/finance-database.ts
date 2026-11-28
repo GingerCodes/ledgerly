@@ -678,6 +678,7 @@ export class FinanceDatabase {
     startDate: string,
     endDate: string,
     categoryIds: string[] | null,
+    accountId: string | null = null,
   ): Transaction[] {
     if (!isIsoDate(startDate) || !isIsoDate(endDate) || startDate > endDate) {
       throw new Error('Choose a valid report period with the start date on or before the end date.')
@@ -694,9 +695,15 @@ export class FinanceDatabase {
       }
     }
 
+    let accountClause = ''
+    if (accountId !== null) {
+      accountClause = ' AND account_id = ?'
+      params.push(accountId)
+    }
+
     return this.rows(
       `SELECT * FROM transactions
-       WHERE type = 'expense' AND date BETWEEN ? AND ?${categoryClause}
+       WHERE type = 'expense' AND date BETWEEN ? AND ?${categoryClause}${accountClause}
        ORDER BY date DESC, created_at DESC`,
       params,
     ).map(readTransaction)

@@ -1,5 +1,5 @@
 import { ChartNoAxesCombined, Download } from 'lucide-react'
-import { categoryPath, formatRupees, type Transaction } from '../../domain/models'
+import { accountLabel, categoryPath, formatRupees, type Transaction } from '../../domain/models'
 import { useFinance } from '../../app/finance-context'
 import { formatReportMonth } from '../../lib/dates'
 import { CategoryDonut } from '../../components/CategoryDonut'
@@ -16,6 +16,7 @@ export function ReportResults({ filters: reportFilters, report, onEditTransactio
   onEditTransaction: (transaction: Transaction) => void
 }) {
   const { accounts, categories } = useFinance()
+  const reportAccount = accounts.find((account) => account.id === reportFilters.accountId)
   const { reportSummary, insights, reportTransactions, exportExpenseReport } = report
   // Top 5 categories get their own colour; the rest are lumped into one grey slice.
   const categorySlices = reportSummary.categoryBreakdown.map((item, index) => ({ ...item, color: sliceColor(index) }))
@@ -32,7 +33,7 @@ export function ReportResults({ filters: reportFilters, report, onEditTransactio
                     <div>
                       <p className="eyebrow">GENERATED SUMMARY</p>
                       <h2>{reportFilters.startDate} – {reportFilters.endDate}</h2>
-                      <p>{reportFilters.categoryId === null
+                      <p>{reportAccount ? accountLabel(reportAccount) : 'All accounts'} · {reportFilters.categoryId === null
                         ? 'All categories'
                         : reportFilters.categoryId === UNCATEGORIZED
                           ? 'Uncategorized'
