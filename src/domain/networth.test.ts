@@ -53,4 +53,15 @@ describe('monthlyNetWorth', () => {
     const paidElsewhere = monthlyNetWorth({ accounts: [...accounts, account('SB2', 'savings', 0)], transactions: [], deposits: [{ ...closed, linkedAccountId: 'SB2' }], endMonth: '2026-04', months: 1 })
     expect(paidElsewhere[0]).toMatchObject({ savingsPaise: 100_000, fixedDepositsPaise: 0 }) // SB1 60,000 + SB2 40,000
   })
+
+  it('counts income dated before the account\'s opening date (the date defaults to the day it was added)', () => {
+    const points = monthlyNetWorth({
+      accounts: [account('SB9', 'savings', 0, '2026-11-28')],
+      transactions: [tx('salary', '2026-10-15', 'income', 'SB9', 50_000)],
+      deposits: [],
+      endMonth: '2026-11',
+      months: 3,
+    })
+    expect(points.map((point) => point.totalPaise)).toEqual([0, 50_000, 50_000])
+  })
 })
