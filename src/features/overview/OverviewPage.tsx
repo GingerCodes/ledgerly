@@ -28,7 +28,6 @@ export function OverviewPage({ onNavigate, onEditTransaction }: {
             <>
               <section className="page-heading">
                 <div><p className="eyebrow">YOUR MONEY, CLEARLY</p><h1>Good {CURRENT_HOUR < 12 ? 'morning' : CURRENT_HOUR < 18 ? 'afternoon' : 'evening'}.</h1><p className="page-subtitle">A clear view of your finances, all in one place.</p></div>
-              </section>
               <div className="period-row">
                 {month !== currentMonth && <button className="text-button" onClick={() => setMonth(currentMonth)}>Back to this month</button>}
                 <div className="month-picker">
@@ -37,6 +36,7 @@ export function OverviewPage({ onNavigate, onEditTransaction }: {
                   <button className="icon-button" onClick={() => setMonth(shiftMonth(month, 1))} disabled={month >= currentMonth} aria-label="Next month"><ChevronRight size={18} /></button>
                 </div>
               </div>
+              </section>
               <section className="metric-grid">
                 <article className="metric-card"><div className="metric-label"><span className="metric-icon green"><Wallet size={18} /></span> Cash + savings</div><strong>{formatRupees(accounts.reduce((total, account) => total + account.currentBalancePaise, 0))}</strong><small>Across {accounts.length} accounts</small></article>
                 <article className="metric-card"><div className="metric-label"><span className="metric-icon coral"><ArrowDownLeft size={18} /></span> Expenses · {period.label}</div><strong>{formatRupees(summary?.expensePaise ?? 0)}</strong><small>{summary.transactionCount} transaction{summary.transactionCount === 1 ? '' : 's'} this month</small></article>
