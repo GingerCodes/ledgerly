@@ -121,7 +121,7 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName, y
         <main className="page-content">
           <Notice error={notice.error} success={notice.success} />
           <Routes>
-            <Route path="/overview" element={<OverviewPage period={period} onYearChange={setYear} onNavigate={(section: Section) => navigate(`/${section}`)} onEditTransaction={(transaction) => showForm(transaction)} />} />
+            <Route path="/overview" element={<OverviewPage onNavigate={(section: Section) => navigate(`/${section}`)} onEditTransaction={(transaction) => showForm(transaction)} />} />
             <Route path="/transactions" element={<TransactionsPage period={period} onYearChange={setYear} transactionForm={transactionForm} onOpenForm={showForm} onCloseForm={closeForm} onSave={saveTransaction} />} />
             <Route path="/reports" element={<ReportsPage report={report} onEditTransaction={(item) => { navigate('/transactions'); showForm(item, '/transactions') }} />} />
             <Route path="/accounts" element={<AccountsPage />} />
