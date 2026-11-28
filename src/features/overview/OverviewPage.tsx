@@ -1,19 +1,18 @@
 import { ArrowDownLeft, ArrowUpRight, Banknote, BriefcaseBusiness, ChevronRight, Plus, Wallet } from 'lucide-react'
 import { categoryPath, formatRupees, type Transaction } from '../../domain/models'
+import { Link } from 'react-router'
 import { useFinance, useFinanceQuery } from '../../app/finance-context'
 import { CURRENT_HOUR } from '../../lib/dates'
-import { type Period, type PeriodMode } from '../../lib/period'
-import { PeriodToggle } from '../../components/PeriodToggle'
+import { type Period } from '../../lib/period'
 import { NetWorthChart } from './NetWorthChart'
 import { maskAccountNumber } from '../../lib/format'
 import type { Section } from '../../app/navigation'
 import { EmptyState } from '../../components/EmptyState'
 import { TransactionTable } from '../../components/TransactionTable'
 
-export function OverviewPage({ period, onYearChange, onModeChange, onNavigate, onEditTransaction }: {
+export function OverviewPage({ period, onYearChange, onNavigate, onEditTransaction }: {
   period: Period
   onYearChange: (year: number) => void
-  onModeChange: (mode: PeriodMode) => void
   onNavigate: (section: Section) => void
   onEditTransaction: (transaction: Transaction | null) => void
 }) {
@@ -31,8 +30,8 @@ export function OverviewPage({ period, onYearChange, onModeChange, onNavigate, o
                 <button className="button button-primary desktop-only" onClick={() => onEditTransaction(null)}><Plus size={16} /> New transaction</button>
               </section>
               <div className="period-row">
-                <PeriodToggle mode={period.mode} onChange={onModeChange} />
                 <span className="period-range">{period.label}: {period.startDate} to {period.endDate}</span>
+                <Link className="text-button" to="/settings/account">Change year view</Link>
               </div>
               <section className="metric-grid">
                 <article className="metric-card"><div className="metric-label"><span className="metric-icon green"><Wallet size={18} /></span> Cash + savings</div><strong>{formatRupees(accounts.reduce((total, account) => total + account.currentBalancePaise, 0))}</strong><small>Across {accounts.length} accounts</small></article>

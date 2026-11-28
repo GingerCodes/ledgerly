@@ -44,12 +44,12 @@ describe('pages render', () => {
     const database = await FinanceDatabase.open(fakeSupabase(snapshot), 'smoke-user')
     const render = (page: React.ReactNode, path = '/') => renderToString(<MemoryRouter initialEntries={[path]}><FinanceProvider database={database}>{page}</FinanceProvider></MemoryRouter>)
 
-    expect(render(<OverviewPage period={makePeriod('financial', 2026)} onYearChange={() => undefined} onModeChange={() => undefined} onNavigate={() => undefined} onEditTransaction={() => undefined} />)).toContain('Net worth')
-    const transactions = render(<TransactionsPage period={makePeriod('calendar', 2026)} onYearChange={() => undefined} onModeChange={() => undefined} transactionForm={undefined} onOpenForm={() => undefined} onCloseForm={() => undefined} onSave={async () => undefined} />)
+    expect(render(<OverviewPage period={makePeriod('financial', 2026)} onYearChange={() => undefined} onNavigate={() => undefined} onEditTransaction={() => undefined} />)).toContain('Net worth')
+    const transactions = render(<TransactionsPage period={makePeriod('calendar', 2026)} onYearChange={() => undefined} transactionForm={undefined} onOpenForm={() => undefined} onCloseForm={() => undefined} onSave={async () => undefined} />)
     expect(transactions).toContain('Groceries')
-    expect(render(<TransactionsPage period={makePeriod('calendar', 2026)} onYearChange={() => undefined} onModeChange={() => undefined} transactionForm={null} onOpenForm={() => undefined} onCloseForm={() => undefined} onSave={async () => undefined} />)).toContain('add another')
+    expect(render(<TransactionsPage period={makePeriod('calendar', 2026)} onYearChange={() => undefined} transactionForm={null} onOpenForm={() => undefined} onCloseForm={() => undefined} onSave={async () => undefined} />)).toContain('add another')
     // the form still suggests descriptions from earlier periods (the selected period 2020 has no transactions)
-    const emptyPeriod = render(<TransactionsPage period={makePeriod('calendar', 2020)} onYearChange={() => undefined} onModeChange={() => undefined} transactionForm={null} onOpenForm={() => undefined} onCloseForm={() => undefined} onSave={async () => undefined} />)
+    const emptyPeriod = render(<TransactionsPage period={makePeriod('calendar', 2020)} onYearChange={() => undefined} transactionForm={null} onOpenForm={() => undefined} onCloseForm={() => undefined} onSave={async () => undefined} />)
     expect(emptyPeriod).toContain('No transactions found for this period')
     expect(emptyPeriod).toContain('<option value="Groceries"')
     expect(render(<ReportsHarness />)).toContain('Generate report')
@@ -60,7 +60,7 @@ describe('pages render', () => {
     expect(render(<CategoriesPage />)).toContain('Food')
     expect(render(<BackupPage />)).toContain('Import transactions from CSV')
 
-    const shellAt = (path: string) => render(<AppShell userName="Alex Jose" fullName="Alex Jose" email="me@example.com" onSignOut={async () => null} onUpdateName={async () => null} />, path)
+    const shellAt = (path: string) => render(<AppShell userName="Alex Jose" fullName="Alex Jose" email="me@example.com" onSignOut={async () => null} onUpdateName={async () => null} yearView="financial" onUpdateYearView={async () => null} />, path)
     // each URL renders its own screen
     expect(shellAt('/transactions')).toContain('Search descriptions')
     expect(shellAt('/reports')).toContain('Generate report')

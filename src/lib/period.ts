@@ -10,8 +10,6 @@ export interface Period {
   label: string
 }
 
-const STORAGE_KEY = 'ledgerly-period-mode'
-
 /** Calendar year (1 Jan to 31 Dec) or the Indian financial year (1 Apr to 31 Mar) starting in `year`. */
 export function makePeriod(mode: PeriodMode, year: number): Period {
   if (mode === 'calendar') {
@@ -38,19 +36,7 @@ export function periodYearOptions(mode: PeriodMode, count = 10, today = new Date
   return Array.from({ length: count }, (_, index) => first - index)
 }
 
-/** New users get the Indian financial year; the choice is remembered in this browser. */
-export function loadPeriodMode(): PeriodMode {
-  try {
-    return localStorage.getItem(STORAGE_KEY) === 'calendar' ? 'calendar' : 'financial'
-  } catch {
-    return 'financial'
-  }
-}
-
-export function savePeriodMode(mode: PeriodMode): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, mode)
-  } catch {
-    // storage blocked: the choice just won't be remembered
-  }
+/** The saved preference (Settings → Account); anything unset or unknown means the Indian financial year. */
+export function parsePeriodMode(value: unknown): PeriodMode {
+  return value === 'calendar' ? 'calendar' : 'financial'
 }

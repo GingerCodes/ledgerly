@@ -27,6 +27,7 @@ const finance: FinanceContextValue = {
 }
 
 const onSignOut = vi.fn()
+const onSaveYearView = vi.fn(async () => null)
 
 function Path() {
   return <output data-testid="path">{useLocation().pathname}</output>
@@ -37,7 +38,7 @@ function renderSettings(startAt = '/settings/categories') {
     <MemoryRouter initialEntries={[startAt]}>
       <FinanceContext.Provider value={finance}>
         <Routes>
-          <Route path="/settings/:tab" element={<SettingsPage fullName="Alex Jose" email="me@example.com" onSaveName={async () => null} onSignOut={onSignOut} onAccountDeleted={async () => null} />} />
+          <Route path="/settings/:tab" element={<SettingsPage fullName="Alex Jose" email="me@example.com" onSaveName={async () => null} yearView="financial" onSaveYearView={onSaveYearView} onSignOut={onSignOut} onAccountDeleted={async () => null} />} />
         </Routes>
         <Path />
       </FinanceContext.Provider>
@@ -62,6 +63,11 @@ describe('SettingsPage', () => {
     expect((screen.getByLabelText('Full name') as HTMLInputElement).value).toBe('Alex Jose')
     await userEvent.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(onSignOut).toHaveBeenCalledOnce()
+
+    // the year view preference lives here: financial year is selected, and choosing calendar year saves it
+    expect(screen.getByRole('radio', { name: 'Financial year' }).getAttribute('aria-checked')).toBe('true')
+    await userEvent.click(screen.getByRole('radio', { name: 'Calendar year' }))
+    expect(onSaveYearView).toHaveBeenCalledWith('calendar')
   })
 
   it('keeps the selected tab in the URL, opens a tab straight from its URL, and fixes an unknown tab', async () => {
