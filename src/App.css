@@ -815,6 +815,7 @@ input[list]::-webkit-calendar-picker-indicator { display: none !important; }
   .app-shell .nav-item { flex: 1 1 0; min-width: 0; }
   .app-shell .nav-item.nav-secondary { display: none; }
   .menu-button { display: inline-flex; width: 44px; height: 44px; flex: none; align-items: center; justify-content: center; margin-right: 2px; border: 0; border-radius: 10px; color: #344a3c; background: transparent; cursor: pointer; }
+  .app-shell .mobile-brand { margin-right: auto; }
   .menu-button.active { color: #fff; background: var(--green); }
   .menu-button:focus-visible, .menu-close:focus-visible, .menu-link:focus-visible { outline: 2px solid #91b79d; outline-offset: 2px; }
   .menu-backdrop { position: fixed; inset: 0; z-index: 900; display: block; background: rgba(20, 35, 28, .45); }
@@ -884,3 +885,4 @@ a.nav-item, a.brand { text-decoration: none; }
 .month-picker { display: flex; align-items: center; gap: 6px; }
 .month-picker input { min-height: 40px; padding: 0 10px; border: 1px solid #66766b; border-radius: 8px; background: #fff; color: #293a30; font: inherit; }
 .month-picker .icon-button:disabled { opacity: 0.4; }
+.period-row { justify-content: flex-end; }

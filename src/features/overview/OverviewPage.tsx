@@ -31,12 +31,12 @@ export function OverviewPage({ onNavigate, onEditTransaction }: {
                 <button className="button button-primary desktop-only" onClick={() => onEditTransaction(null)}><Plus size={16} /> New transaction</button>
               </section>
               <div className="period-row">
+                {month !== currentMonth && <button className="text-button" onClick={() => setMonth(currentMonth)}>Back to this month</button>}
                 <div className="month-picker">
                   <button className="icon-button" onClick={() => setMonth(shiftMonth(month, -1))} aria-label="Previous month"><ChevronLeft size={18} /></button>
                   <input type="month" value={month} max={currentMonth} aria-label="Month" onChange={(event) => event.target.value && setMonth(event.target.value > currentMonth ? currentMonth : event.target.value)} />
                   <button className="icon-button" onClick={() => setMonth(shiftMonth(month, 1))} disabled={month >= currentMonth} aria-label="Next month"><ChevronRight size={18} /></button>
                 </div>
-                {month !== currentMonth && <button className="text-button" onClick={() => setMonth(currentMonth)}>Back to this month</button>}
               </div>
               <section className="metric-grid">
                 <article className="metric-card"><div className="metric-label"><span className="metric-icon green"><Wallet size={18} /></span> Cash + savings</div><strong>{formatRupees(accounts.reduce((total, account) => total + account.currentBalancePaise, 0))}</strong><small>Across {accounts.length} accounts</small></article>
