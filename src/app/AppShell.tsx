@@ -41,7 +41,7 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }:
   const showForm = (transaction: Transaction | null, path = pathname) => setOpenForm({ transaction, path })
   const closeForm = () => setOpenForm(null)
   const report = useExpenseReport(mode)
-  const overviewTransactions = useFinanceQuery((db) => db.getTransactions(period.startDate, period.endDate), [period.startDate, period.endDate])
+  const suggestions = useFinanceQuery((db) => db.getRecentTransactions(500), [])
   const activeSection = sections.find((item) => item.id === sectionOf(pathname))
 
   // One page view per real screen; paths that only redirect have no title and are skipped.
@@ -122,7 +122,7 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }:
 
       {transactionForm !== undefined && pathname === '/overview' && (
         <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) closeForm() }}>
-          <div className="modal-content"><TransactionForm transaction={transactionForm} accounts={accounts} categories={categories} transactions={overviewTransactions} onCancel={closeForm} onSave={saveTransaction} /></div>
+          <div className="modal-content"><TransactionForm transaction={transactionForm} accounts={accounts} categories={categories} transactions={suggestions} onCancel={closeForm} onSave={saveTransaction} /></div>
         </div>
       )}
     </div>
