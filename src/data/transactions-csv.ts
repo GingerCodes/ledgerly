@@ -49,8 +49,14 @@ export function exportTransactionsCsv(transactions: Transaction[]): string {
 
   return `\uFEFF${Papa.unparse(
     { fields: [...TRANSACTION_CSV_HEADERS], data: rows },
-    { newline: '\r\n' },
+    // escapeFormulae prefixes cells starting with = + - @ with a quote so Excel shows them as text instead of running them
+    { newline: '\r\n', escapeFormulae: true },
   )}`
+}
+
+/** Undoes the quote that the export adds in front of cells that would otherwise look like formulas. */
+function unescapeFormula(value: string | undefined): string | undefined {
+  return value?.replace(/^'(?=[=+\-@\t\r])/, '')
 }
 
 export function parseTransactionsCsv(
@@ -90,12 +96,12 @@ export function parseTransactionsCsv(
     const id = row.transaction_id?.trim()
     const date = row.date?.trim()
     const type = row.type?.trim() as TransactionType | undefined
-    const description = row.description?.trim()
+    const description = unescapeFormula(row.description)?.trim()
     const accountId = row.account_id?.trim() || null
     const fromAccountId = row.from_account_id?.trim() || null
     const toAccountId = row.to_account_id?.trim() || null
     const categoryId = row.category_id?.trim() || null
-    const notes = row.notes?.trim() ?? ''
+    const notes = unescapeFormula(row.notes)?.trim() ?? ''
 
     if (!id) {
       issue('transaction_id cannot be empty.')

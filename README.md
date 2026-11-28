@@ -58,6 +58,20 @@ Production is deployed only by the GitHub Action in [`.github/workflows/deploy-v
 
 The workflow limits secrets to the steps that use them, does not persist git credentials after checkout, and pins the Vercel CLI version.
 
+## Security settings
+
+**Headers.** `vercel.json` sends a Content-Security-Policy and other headers on every response: the page cannot be shown inside another site's frame, scripts load only from the app itself and Google Tag Manager, and network calls go only to the app, `*.supabase.co` and Google Analytics. If you move Supabase to a custom domain or add another service, add its address to `connect-src` there, or the browser will block the calls.
+
+**Supabase (set in the dashboard, not in code).** The sign-up form asks for a 12-character password, but anyone can call Supabase directly, so also set these under Authentication:
+- Minimum password length 12, and turn on leaked-password protection.
+- Require email confirmation, and turn on CAPTCHA (hCaptcha or Turnstile) for sign-up and sign-in.
+- Review the rate limits, and use your own SMTP provider for reliable sign-up emails.
+
+**Tag Manager.** A container can run any script in the app's page, which can read the signed-in session and the finance data. Keep it safe:
+- Turn on two-step verification for every Google account that can publish, and give publish rights to as few people as possible.
+- Use only the built-in GA4 tags. Do not add Custom HTML tags or Custom JavaScript variables (the Content-Security-Policy also blocks inline scripts, so such tags would not work).
+- Review each version in Preview before publishing.
+
 ## Google Analytics through Tag Manager (optional)
 
 Page-view analytics is off unless you set `VITE_GTM_ID` to a Google Tag Manager container ID such as `GTM-XXXXXXX` (it is public, not a secret). For the deployed app add it as a Production environment variable in the Vercel project; for local development put it in `.env.local`.

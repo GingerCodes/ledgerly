@@ -90,4 +90,19 @@ describe('year-wise transaction CSV', () => {
     expect(result.validRows).toEqual([])
     expect(result.errors).toContain('Missing required CSV column: transaction_id')
   })
+
+  it('exports formula-looking text as plain text and reads it back unchanged', () => {
+    const base = { type: 'expense' as const, accountId: 'CASH', fromAccountId: null, toAccountId: null, amountPaise: 1000, categoryId: null, createdAt: '2026-03-10T12:00:00.000Z', updatedAt: '2026-03-10T12:00:00.000Z' }
+    const transactions: Transaction[] = [
+      { ...base, id: 'formula-1', date: '2026-03-10', description: '=HYPERLINK("http://evil.example","click")', notes: '+1 and -2 and @me' },
+    ]
+    const csv = exportTransactionsCsv(transactions)
+    expect(csv).toContain(`'=HYPERLINK`)
+    expect(csv).not.toMatch(/,=HYPERLINK|,"=HYPERLINK/)
+
+    const result = parseTransactionsCsv(csv, accounts, categories)
+    expect(result.errors).toEqual([])
+    expect(result.validRows[0].transaction.description).toBe('=HYPERLINK("http://evil.example","click")')
+    expect(result.validRows[0].transaction.notes).toBe('+1 and -2 and @me')
+  })
 })
