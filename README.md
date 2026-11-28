@@ -15,7 +15,8 @@ A private, cloud-backed, installable PWA for recording INR expenses, income, tra
 
 5. Open Supabase SQL Editor and run [`supabase/migrations/20261127120000_finance_schema.sql`](./supabase/migrations/20261127120000_finance_schema.sql). It creates the finance tables, per-user RLS policies, and authenticated database functions.
    Then run [`supabase/migrations/20261127130000_fd_funding_account.sql`](./supabase/migrations/20261127130000_fd_funding_account.sql). It adds the savings account that funds each fixed deposit (the principal is debited from it). Existing projects must run it before using this version, or saving deposits will fail.
-   Finally run [`supabase/migrations/20261127140000_delete_account.sql`](./supabase/migrations/20261127140000_delete_account.sql). It adds the function behind Settings → Account → Delete account; without it that button shows an error.
+   Then run [`supabase/migrations/20261127140000_delete_account.sql`](./supabase/migrations/20261127140000_delete_account.sql). It adds the function behind Settings → Account → Delete account; without it that button shows an error.
+   Finally run [`supabase/migrations/20261128100000_require_current_client.sql`](./supabase/migrations/20261128100000_require_current_client.sql). It makes the server refuse saves from older cached copies of the app (they are told to reload) so they cannot erase newer columns. **Deploy the app first, then run this one.** Whenever a later migration adds a column, raise `CLIENT_API_VERSION` in `src/data/finance-database.ts` and the number in this function's check.
 6. Install and start the app:
 
    ```powershell

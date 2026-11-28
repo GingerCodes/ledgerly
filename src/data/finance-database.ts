@@ -18,6 +18,8 @@ import {
 
 const APPLICATION_ID = 1_347_866_450
 const CURRENT_SCHEMA_VERSION = 1
+/** Sent with every save. The database function refuses saves from older app versions (see 20261128100000_require_current_client.sql) so a stale cached copy cannot overwrite columns it does not know about. Raise it whenever a migration adds a column. */
+const CLIENT_API_VERSION = 2
 const snapshotTables = [
   'accounts',
   'categories',
@@ -456,7 +458,7 @@ export class FinanceDatabase {
     return nextOpening
   }
 
-  private static async openFresh(client: SupabaseClient, userId: string): Promise<FinanceDatabase> {
+  private static async openFresh(client: SupabaseClient, userId: string, retried = false): Promise<FinanceDatabase> {
     const { data, error } = await client.rpc('finance_load_snapshot')
     if (error) {
       const diagnostics = [error.code, error.details, error.hint].filter(Boolean).join(' ')
@@ -484,6 +486,13 @@ export class FinanceDatabase {
         emptyDatabase.run(schema)
         try {
           await financeDatabase.saveCloudChanges(emptyDatabase)
+        } catch (error) {
+          // Another tab set up this brand-new account first (for example the email-confirmation tab): use its data.
+          if (!retried && error instanceof Error && error.message.includes('FINANCE_CONFLICT')) {
+            database.close()
+            return FinanceDatabase.openFresh(client, userId, true)
+          }
+          throw error
         } finally {
           emptyDatabase.close()
         }
@@ -542,8 +551,9 @@ export class FinanceDatabase {
     const changes = getCloudChanges(previous, this.database)
     const { data, error } = await this.client.rpc('finance_apply_changes', {
       expected_revision: this.cloudRevision,
-      changes,
+      changes: { ...changes, client_api_version: CLIENT_API_VERSION },
     })
+    if (error?.message.includes('FINANCE_OUTDATED')) throw new Error('This version of Ledgerly is out of date. Reload the page to update.')
     if (error) throw new Error(`Could not save your finance data: ${error.message}`)
     if (typeof data !== 'number' || !Number.isSafeInteger(data)) {
       throw new Error('The server returned an invalid finance revision after saving.')
