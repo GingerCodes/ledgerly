@@ -19,14 +19,14 @@ function setup() {
 }
 
 describe('phone menu', () => {
-  it('holds Accounts, Fixed deposits and Settings, and the bottom bar keeps the other three', () => {
-    expect(menuSections.map((item) => item.label)).toEqual(['Accounts', 'Fixed deposits', 'Settings'])
+  it('holds Accounts and Settings, and the bottom bar keeps the other three', () => {
+    expect(menuSections.map((item) => item.label)).toEqual(['Accounts', 'Settings'])
     expect(sections.filter((item) => !item.menu).map((item) => item.label)).toEqual(['Overview', 'Transactions', 'Reports'])
   })
 
   it('lists the sections, focuses the close button, and closes with Escape, the backdrop or the close button', async () => {
     const { onClose } = setup()
-    expect(screen.getAllByRole('link').map((link) => link.textContent)).toEqual(['Accounts', 'Fixed deposits', 'Settings'])
+    expect(screen.getAllByRole('link').map((link) => link.textContent)).toEqual(['Accounts', 'Settings'])
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Close menu' }))
 
     await userEvent.keyboard('{Escape}')
@@ -39,8 +39,8 @@ describe('phone menu', () => {
 
   it('goes to the chosen screen and closes', async () => {
     const { onClose } = setup()
-    await userEvent.click(screen.getByRole('link', { name: 'Fixed deposits' }))
-    expect(screen.getByTestId('path').textContent).toBe('/deposits')
+    await userEvent.click(screen.getByRole('link', { name: 'Accounts' }))
+    expect(screen.getByTestId('path').textContent).toBe('/accounts')
     expect(onClose).toHaveBeenCalledOnce()
   })
 })

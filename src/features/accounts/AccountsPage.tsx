@@ -1,16 +1,22 @@
 import { useState, type FormEvent } from 'react'
-import { Banknote, Pencil, Plus } from 'lucide-react'
+import { Banknote, BriefcaseBusiness, Pencil, PiggyBank, Plus, Wallet } from 'lucide-react'
 import { accountLabel, formatRupees, parseNonNegativeRupeesToPaise, type Account } from '../../domain/models'
 import { useFinance } from '../../app/finance-context'
+import { accountsSummary } from '../../domain/accounts-summary'
+import { FixedDepositsSection } from '../deposits/FixedDepositsSection'
 import { todayIso } from '../../lib/dates'
 import { maskAccountNumber } from '../../lib/format'
 import type { FinanceDatabase } from '../../data/finance-database'
+import { EmptyState } from '../../components/EmptyState'
 import { AccountForm } from './AccountForm'
 import { SnapshotRow } from './SnapshotRow'
 
-export function AccountsPage({ startWithForm = false }: { startWithForm?: boolean }) {
-  const { database, accounts, snapshots, runAction, showError } = useFinance()
-  const [accountForm, setAccountForm] = useState<Account | null | undefined>(() => (startWithForm ? null : undefined))
+export function AccountsPage({ startWith }: { startWith?: 'account' | 'deposit' }) {
+  const { database, accounts, deposits, snapshots, runAction, showError } = useFinance()
+  const summary = accountsSummary(accounts, deposits)
+  const cash = accounts.filter((account) => account.type === 'cash')
+  const savings = accounts.filter((account) => account.type === 'savings')
+  const [accountForm, setAccountForm] = useState<Account | null | undefined>(() => (startWith === 'account' ? null : undefined))
   const [snapshotBalance, setSnapshotBalance] = useState('')
   const [snapshotAccountId, setSnapshotAccountId] = useState('')
   const [snapshotDate, setSnapshotDate] = useState(todayIso())
@@ -42,10 +48,16 @@ export function AccountsPage({ startWithForm = false }: { startWithForm?: boolea
 
   return (
             <>
-              <section className="page-heading"><div><p className="eyebrow">CASH & SAVINGS</p><h1>Accounts</h1><p className="page-subtitle">Your cash wallet and savings accounts, with balance check-ins.</p></div><button className="button button-primary" onClick={() => setAccountForm(null)}><Plus size={16} /> Add savings account</button></section>
-              {accountForm !== undefined && <AccountForm key={accountForm?.id ?? 'new-account'} account={accountForm} onCancel={() => setAccountForm(undefined)} onSave={createAccount} />}
-              <section className="account-card-grid">
-                {accounts.map((account) => (
+              <section className="page-heading"><div><p className="eyebrow">CASH, SAVINGS & DEPOSITS</p><h1>Accounts</h1><p className="page-subtitle">Everything you hold, in one place.</p></div></section>
+              <section className="metric-grid summary-grid">
+                <article className="metric-card"><div className="metric-label"><span className="metric-icon green"><PiggyBank size={18} /></span> Savings accounts</div><strong>{formatRupees(summary.savingsPaise)}</strong><small className="delta">{summary.savingsCount} account{summary.savingsCount === 1 ? '' : 's'}</small></article>
+                <article className="metric-card"><div className="metric-label"><span className="metric-icon purple"><BriefcaseBusiness size={18} /></span> Fixed deposits</div><strong>{formatRupees(summary.depositsPaise)}</strong><small className="delta">{summary.depositCount} active deposit{summary.depositCount === 1 ? '' : 's'}</small></article>
+                <article className="metric-card"><div className="metric-label"><span className="metric-icon blue"><Wallet size={18} /></span> Savings + deposits</div><strong>{formatRupees(summary.totalPaise)}</strong><small className="delta">Cash is shown separately below</small></article>
+              </section>
+              <section className="account-section">
+                <div className="section-head"><div><h2>Cash</h2></div></div>
+                <div className="account-card-grid">
+                  {cash.map((account) => (
                   <article className="account-card" key={account.id}>
                     <div className="account-card-top"><span className={`account-type-icon ${account.type}`}><Banknote size={18} /></span>{account.id !== 'CASH' && <button className="icon-button" aria-label={`Edit ${account.name}`} onClick={() => setAccountForm(account)}><Pencil size={16} /></button>}</div>
                     <p className="eyebrow">{account.id === 'CASH' ? 'CASH WALLET' : account.institution.toUpperCase()}</p>
@@ -54,8 +66,26 @@ export function AccountsPage({ startWithForm = false }: { startWithForm?: boolea
                     <strong className="account-balance">{formatRupees(account.currentBalancePaise)}</strong>
                     <small>Opening balance {formatRupees(account.openingBalancePaise)}</small>
                   </article>
-                ))}
+                  ))}
+                </div>
               </section>
+              <section className="account-section">
+                <div className="section-head"><div><h2>Savings accounts</h2><p>{summary.savingsCount} account{summary.savingsCount === 1 ? '' : 's'} · {formatRupees(summary.savingsPaise)}</p></div><button className="button button-primary" onClick={() => setAccountForm(null)}><Plus size={16} /> Add savings account</button></div>
+                {accountForm !== undefined && <AccountForm key={accountForm?.id ?? 'new-account'} account={accountForm} onCancel={() => setAccountForm(undefined)} onSave={createAccount} />}
+                {savings.length ? <div className="account-card-grid">
+                  {savings.map((account) => (
+                  <article className="account-card" key={account.id}>
+                    <div className="account-card-top"><span className={`account-type-icon ${account.type}`}><Banknote size={18} /></span>{account.id !== 'CASH' && <button className="icon-button" aria-label={`Edit ${account.name}`} onClick={() => setAccountForm(account)}><Pencil size={16} /></button>}</div>
+                    <p className="eyebrow">{account.id === 'CASH' ? 'CASH WALLET' : account.institution.toUpperCase()}</p>
+                    <h2>{account.name}</h2>
+                    {account.id !== 'CASH' && <p className="account-number">{maskAccountNumber(account.accountNumber)}</p>}
+                    <strong className="account-balance">{formatRupees(account.currentBalancePaise)}</strong>
+                    <small>Opening balance {formatRupees(account.openingBalancePaise)}</small>
+                  </article>
+                  ))}
+                </div> : <div className="panel"><EmptyState>No savings accounts added yet.</EmptyState></div>}
+              </section>
+              <FixedDepositsSection startWithForm={startWith === 'deposit'} />
               <section className="panel snapshot-panel">
                 <div className="panel-heading"><div><p className="eyebrow">RECONCILIATION</p><h2>Balance snapshots</h2><p className="panel-subtitle">Record a statement or passbook balance to compare later.</p></div></div>
                 <form className="snapshot-form" onSubmit={addSnapshot}>

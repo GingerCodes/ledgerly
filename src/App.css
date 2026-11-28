@@ -899,3 +899,10 @@ a.nav-item, a.brand { text-decoration: none; }
 .upcoming-panel .balance-name b, .upcoming-panel .balance-name small { overflow: visible; text-overflow: clip; white-space: normal; }
 .metric-card { border-color: #cfd9d1; box-shadow: 0 1px 2px rgba(30, 50, 40, .06), 0 4px 14px rgba(30, 50, 40, .08); }
 .sparkline-line { stroke: rgba(36, 92, 72, .35); }
+
+.account-section { margin-bottom: 22px; }
+.section-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 12px; }
+.section-head h2 { margin: 0; color: #20332c; font-family: Manrope, sans-serif; font-size: 19px; letter-spacing: -.3px; }
+.section-head p { margin: 2px 0 0; color: #526258; font-size: 13px; }
+.app-shell .summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 760px) { .app-shell .summary-grid { grid-template-columns: 1fr; } }

@@ -40,7 +40,7 @@ export function OverviewPage({ onNavigate, onEditTransaction }: {
               <SummaryCards month={month} summary={summary} previous={previous} />
               <div className="dashboard-grid">
                 <SpendingPanel month={month} summary={summary} previous={previous} />
-                <UpcomingPanel onNavigate={() => onNavigate('deposits')} />
+                <UpcomingPanel onNavigate={() => onNavigate('accounts')} />
               </div>
               <section className="panel recent-panel">
                 <div className="panel-heading"><div><p className="eyebrow">LATEST ACTIVITY</p><h2>Recent transactions</h2></div><button className="text-button" onClick={() => onNavigate('transactions')}>All transactions <ChevronRight size={15} /></button></div>
