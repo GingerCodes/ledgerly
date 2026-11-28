@@ -10,7 +10,7 @@ const tx = (id: string, date: string, type: Transaction['type'], accountId: stri
 })
 const deposit = (overrides: Partial<FixedDeposit>): FixedDeposit => ({
   id: 'fd', institution: 'SBI', accountNumber: 'FD', principalPaise: 40_000, startDate: '2026-04-10', maturityDate: '2027-04-10', annualRateBasisPoints: 700,
-  interestType: 'simple', compoundsPerYear: 1, linkedAccountId: null, fundingAccountId: null, maturityInstruction: '', status: 'active', closedDate: null, notes: '', createdAt: '', updatedAt: '', ...overrides,
+  interestType: 'simple', compoundsPerYear: 1, linkedAccountId: null, fundingAccountId: null, maturityInstruction: '', status: 'active', closedDate: null, principalReturned: false, notes: '', createdAt: '', updatedAt: '', ...overrides,
 })
 
 const accounts = [account('CASH', 'cash', 0), account('SB1', 'savings', 100_000)]
@@ -63,5 +63,18 @@ describe('monthlyNetWorth', () => {
       months: 3,
     })
     expect(points.map((point) => point.totalPaise)).toEqual([0, 50_000, 50_000])
+  })
+
+  it('keeps net worth steady when a deposit with no source closes and its principal is added to the account', () => {
+    const base = deposit({ fundingAccountId: null, startDate: '2026-02-10', principalPaise: 40_000 })
+    const run = (closed: Partial<FixedDeposit>) => monthlyNetWorth({
+      accounts, transactions: [], deposits: [{ ...base, ...closed }], endMonth: '2026-06', months: 5,
+    }).map((point) => point.totalPaise)
+    // February to June: the deposit's principal is added from its start (nothing was taken from the account)
+    expect(run({})).toEqual([140_000, 140_000, 140_000, 140_000, 140_000])
+    // closing in May with the principal added: it moves from the deposit into the account, so the total does not change
+    expect(run({ status: 'closed', closedDate: '2026-05-15', linkedAccountId: 'SB1', principalReturned: true })).toEqual([140_000, 140_000, 140_000, 140_000, 140_000])
+    // closing without adding it: the principal leaves net worth in May
+    expect(run({ status: 'closed', closedDate: '2026-05-15', linkedAccountId: 'SB1', principalReturned: false })).toEqual([140_000, 140_000, 140_000, 100_000, 100_000])
   })
 })

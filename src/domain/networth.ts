@@ -46,13 +46,13 @@ export function monthlyNetWorth(input: {
     const monthEnd = `${month}-31` // every date in the month sorts at or before this
     const balances = calculateAccountBalances(accounts, transactions.filter((transaction) => transaction.date <= monthEnd))
     for (const deposit of deposits) {
-      if (!deposit.fundingAccountId) continue
-      if (deposit.startDate <= monthEnd) {
+      if (deposit.fundingAccountId && deposit.startDate <= monthEnd) {
         balances.set(deposit.fundingAccountId, (balances.get(deposit.fundingAccountId) ?? 0) - deposit.principalPaise)
       }
-      if (deposit.status === 'closed' && closedDateOf(deposit) <= monthEnd) {
+      // The principal comes back when the deposit was funded from an account, or when the user said to add it on closing.
+      if (deposit.status === 'closed' && closedDateOf(deposit) <= monthEnd && (deposit.fundingAccountId || deposit.principalReturned)) {
         const receiving = deposit.linkedAccountId ?? deposit.fundingAccountId
-        balances.set(receiving, (balances.get(receiving) ?? 0) + deposit.principalPaise)
+        if (receiving) balances.set(receiving, (balances.get(receiving) ?? 0) + deposit.principalPaise)
       }
     }
 

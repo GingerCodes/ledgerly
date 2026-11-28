@@ -5,7 +5,7 @@ import { categoryMovers, overdueDeposits, percentChange, savingsRate, spendingPa
 const deposit = (id: string, maturityDate: string, status: FixedDeposit['status'] = 'active'): FixedDeposit => ({
   id, institution: 'Bank', accountNumber: id, principalPaise: 100000, startDate: '2025-01-01', maturityDate,
   annualRateBasisPoints: 1000, interestType: 'simple', compoundsPerYear: 1, linkedAccountId: null, fundingAccountId: null,
-  maturityInstruction: '', status, closedDate: null, notes: '', createdAt: '', updatedAt: '',
+  maturityInstruction: '', status, closedDate: null, principalReturned: false, notes: '', createdAt: '', updatedAt: '',
 })
 
 describe('overview maths', () => {

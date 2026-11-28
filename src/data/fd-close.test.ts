@@ -71,10 +71,52 @@ describe('closing a fixed deposit', () => {
     await database.close()
   })
 
+  describe('a deposit with no source account', () => {
+    const unfunded = { ...deposit, fundingAccountId: null, startDate: '2025-01-01', maturityDate: '2026-01-01' }
+
+    it('takes nothing when added, and adds the principal to the receiving account only when the user says so', async () => {
+      const { database } = await open()
+      const id = await database.saveFixedDeposit(unfunded)
+      expect(balance(database, 'SB1')).toBe(1_000_000) // nothing was debited
+
+      await database.closeFixedDeposit(id, { date: '2026-01-01', accountId: 'SB1', interestPaise: 30_000, returnPrincipal: true })
+      expect(database.getFixedDeposits()[0]).toMatchObject({ status: 'closed', principalReturned: true })
+      expect(balance(database, 'SB1')).toBe(1_000_000 + 400_000 + 30_000) // principal and interest arrive
+      await database.close()
+    })
+
+    it('credits only the interest when the box is left unticked, and funded deposits ignore the box', async () => {
+      const { database } = await open()
+      const id = await database.saveFixedDeposit(unfunded)
+      await database.closeFixedDeposit(id, { date: '2026-01-01', accountId: 'SB1', interestPaise: 30_000, returnPrincipal: false })
+      expect(database.getFixedDeposits()[0].principalReturned).toBe(false)
+      expect(balance(database, 'SB1')).toBe(1_000_000 + 30_000)
+
+      const funded = await database.saveFixedDeposit(deposit)
+      await database.closeFixedDeposit(funded, { date: '2027-03-01', accountId: 'SB1', interestPaise: 0, returnPrincipal: true })
+      expect(database.getFixedDeposits().find((item) => item.id === funded)!.principalReturned).toBe(false) // its principal comes back anyway
+      expect(balance(database, 'SB1')).toBe(1_000_000 + 30_000)
+      await database.close()
+    })
+
+    it('shows the returned principal in balance snapshots from the closing date, and keeps the flag through a save', async () => {
+      const { database, applied } = await open()
+      const id = await database.saveFixedDeposit(unfunded)
+      await database.closeFixedDeposit(id, { date: '2026-01-01', accountId: 'SB1', interestPaise: 0, returnPrincipal: true })
+      await database.saveBalanceSnapshot({ accountId: 'SB1', date: '2025-12-31', reportedBalancePaise: 1_000_000, source: 'Statement', notes: '' })
+      await database.saveBalanceSnapshot({ accountId: 'SB1', date: '2026-01-01', reportedBalancePaise: 1_400_000, source: 'Statement', notes: '' })
+      const calculated = Object.fromEntries(database.getBalanceSnapshots().map((item) => [item.date, item.calculatedBalancePaise]))
+      expect(calculated).toEqual({ '2025-12-31': 1_000_000, '2026-01-01': 1_400_000 })
+      const sent = applied.flatMap((call) => (call.changes.fixed_deposits?.upsert ?? []) as Array<Record<string, unknown>>).at(-1)!
+      expect(Number(sent.principal_returned)).toBe(1)
+      await database.close()
+    })
+  })
+
   it('sends the new app version so older cached copies are refused', async () => {
     const { database, applied } = await open()
     await database.saveFixedDeposit(deposit)
-    expect(applied[0].changes.client_api_version).toBe(4)
+    expect(applied[0].changes.client_api_version).toBe(5)
     await database.close()
   })
 
