@@ -82,7 +82,7 @@ CSV is an export and interchange format, not a second editable source of truth o
 
 - Track savings transactions and bank-reported balance snapshots separately.
 - Store FD principal, dates, rate, terms, linked account, and maturity instructions.
-- A new FD is funded from a savings account: its principal is debited from that account's balance (computed from the deposit, not stored as a transaction) and the save is rejected if the account would go negative. Closing an FD does not return the principal; record the maturity proceeds as income or a transfer.
+- A new FD is funded from a savings account: its principal is debited from that account's balance (computed from the deposit, not stored as a transaction) and the save is rejected if the account would go negative. Closing an FD asks for the closing date, the account that received the money and the interest paid: the principal returns to that account from the closing date and only the interest is recorded as income.
 - Provide maturity reminders and balance summaries.
 - Do not infer missing FD terms or claim projected interest is an exact payout.
 

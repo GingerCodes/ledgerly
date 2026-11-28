@@ -54,6 +54,7 @@ export function DepositForm({
         fundingAccountId: fundingAccountId || null,
         maturityInstruction,
         status: deposit?.status ?? 'active',
+        closedDate: deposit?.closedDate ?? null,
         notes,
         createdAt: deposit?.createdAt ?? '',
         updatedAt: deposit?.updatedAt ?? '',

@@ -91,6 +91,7 @@ describe('fixed-deposit estimates', () => {
       fundingAccountId: null,
       maturityInstruction: '',
       status: 'active',
+      closedDate: null,
       notes: '',
       createdAt: '',
       updatedAt: '',

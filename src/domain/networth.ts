@@ -1,4 +1,4 @@
-import { calculateAccountBalances, type Account, type FixedDeposit, type Transaction } from './models'
+import { calculateAccountBalances, closedDateOf, type Account, type FixedDeposit, type Transaction } from './models'
 
 export interface NetWorthPoint {
   /** `YYYY-MM` */
@@ -20,8 +20,9 @@ function addMonths(month: string, delta: number): string {
  * account balances (opening balance plus transactions up to month end, less deposits funded from the account)
  * and fixed-deposit principal. Accounts count from their opening date.
  *
- * shortcut: a closed deposit is assumed to have paid out on its maturity date (no closing date is stored),
- * and interest is not accrued; upgrade if a closed-on date or accrued-interest view is added.
+ * A closed deposit stops counting on its closing date and its principal returns to the account it was paid into
+ * (the maturity account, else the funding account), exactly like the balance rule in the database. Interest accrued
+ * before closing is not included.
  */
 export function monthlyNetWorth(input: {
   accounts: Account[]
@@ -36,8 +37,13 @@ export function monthlyNetWorth(input: {
     const monthEnd = `${month}-31` // every date in the month sorts at or before this
     const balances = calculateAccountBalances(accounts, transactions.filter((transaction) => transaction.date <= monthEnd))
     for (const deposit of deposits) {
-      if (deposit.fundingAccountId && deposit.startDate <= monthEnd) {
+      if (!deposit.fundingAccountId) continue
+      if (deposit.startDate <= monthEnd) {
         balances.set(deposit.fundingAccountId, (balances.get(deposit.fundingAccountId) ?? 0) - deposit.principalPaise)
+      }
+      if (deposit.status === 'closed' && closedDateOf(deposit) <= monthEnd) {
+        const receiving = deposit.linkedAccountId ?? deposit.fundingAccountId
+        balances.set(receiving, (balances.get(receiving) ?? 0) + deposit.principalPaise)
       }
     }
 
@@ -50,7 +56,7 @@ export function monthlyNetWorth(input: {
       else savingsPaise += balance
     }
     const fixedDepositsPaise = deposits
-      .filter((deposit) => deposit.startDate <= monthEnd && (deposit.status !== 'closed' || deposit.maturityDate > monthEnd))
+      .filter((deposit) => deposit.startDate <= monthEnd && (deposit.status !== 'closed' || closedDateOf(deposit) > monthEnd))
       .reduce((total, deposit) => total + deposit.principalPaise, 0)
 
     return { month, cashPaise, savingsPaise, fixedDepositsPaise, totalPaise: cashPaise + savingsPaise + fixedDepositsPaise }

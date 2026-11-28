@@ -10,7 +10,7 @@ const tx = (id: string, date: string, type: Transaction['type'], accountId: stri
 })
 const deposit = (overrides: Partial<FixedDeposit>): FixedDeposit => ({
   id: 'fd', institution: 'SBI', accountNumber: 'FD', principalPaise: 40_000, startDate: '2026-04-10', maturityDate: '2027-04-10', annualRateBasisPoints: 700,
-  interestType: 'simple', compoundsPerYear: 1, linkedAccountId: null, fundingAccountId: null, maturityInstruction: '', status: 'active', notes: '', createdAt: '', updatedAt: '', ...overrides,
+  interestType: 'simple', compoundsPerYear: 1, linkedAccountId: null, fundingAccountId: null, maturityInstruction: '', status: 'active', closedDate: null, notes: '', createdAt: '', updatedAt: '', ...overrides,
 })
 
 const accounts = [account('CASH', 'cash', 0), account('SB1', 'savings', 100_000)]
@@ -38,15 +38,19 @@ describe('monthlyNetWorth', () => {
     expect(legacy.map((point) => point.totalPaise)).toEqual([100_000, 140_000, 140_000])
   })
 
-  it('counts accounts only from their opening date and stops counting a closed deposit after maturity', () => {
-    const points = monthlyNetWorth({
-      accounts: [...accounts, account('SB2', 'savings', 20_000, '2026-03-15')],
-      transactions: [],
-      deposits: [deposit({ startDate: '2026-01-05', maturityDate: '2026-02-20', status: 'closed' })],
-      endMonth: '2026-03',
-      months: 3,
-    })
-    expect(points.map((point) => point.fixedDepositsPaise)).toEqual([40_000, 0, 0])
+  it('counts accounts only from their opening date', () => {
+    const points = monthlyNetWorth({ accounts: [...accounts, account('SB2', 'savings', 20_000, '2026-03-15')], transactions: [], deposits: [], endMonth: '2026-03', months: 3 })
     expect(points.map((point) => point.savingsPaise)).toEqual([100_000, 100_000, 120_000])
+  })
+
+  it('a closed deposit stops counting on its closing date and its principal returns to the account it was paid into', () => {
+    const closed = deposit({ fundingAccountId: 'SB1', startDate: '2026-01-05', maturityDate: '2026-04-01', status: 'closed', closedDate: '2026-03-10' })
+    const points = monthlyNetWorth({ accounts, transactions: [], deposits: [closed], endMonth: '2026-04', months: 4 })
+    expect(points.map((point) => point.fixedDepositsPaise)).toEqual([40_000, 40_000, 0, 0])
+    expect(points.map((point) => point.savingsPaise)).toEqual([60_000, 60_000, 100_000, 100_000])
+    expect(points.map((point) => point.totalPaise)).toEqual([100_000, 100_000, 100_000, 100_000])
+
+    const paidElsewhere = monthlyNetWorth({ accounts: [...accounts, account('SB2', 'savings', 0)], transactions: [], deposits: [{ ...closed, linkedAccountId: 'SB2' }], endMonth: '2026-04', months: 1 })
+    expect(paidElsewhere[0]).toMatchObject({ savingsPaise: 100_000, fixedDepositsPaise: 0 }) // SB1 60,000 + SB2 40,000
   })
 })
