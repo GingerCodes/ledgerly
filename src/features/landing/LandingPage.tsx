@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { ArrowRight, Check, Minus } from 'lucide-react'
 import { Logo } from '../../components/Logo'
@@ -36,11 +36,18 @@ export function LandingPage({ signedIn }: { signedIn: boolean }) {
     return () => { document.title = previous }
   }, [])
   const ref = useReveal<HTMLDivElement>()
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
     <div className="landing" ref={ref}>
       <a className="skip-link" href="#main">Skip to content</a>
-      <header className="landing-header">
+      <header className={`landing-header${scrolled ? ' scrolled' : ''}`}>
         <div className="landing-wrap landing-header-row">
           <Link className="landing-brand" to="/" aria-label="Ledgerly home"><span className="brand-mark"><Logo /></span>Ledgerly</Link>
           <nav className="landing-nav" aria-label="Sections">
@@ -78,7 +85,7 @@ export function LandingPage({ signedIn }: { signedIn: boolean }) {
 
         <section className="landing-trust" aria-label="What Ledgerly never does">
           <div className="landing-wrap">
-            <ul>{TRUST.map(({ icon: Icon, label }) => <li key={label}><Icon size={18} aria-hidden="true" />{label}</li>)}</ul>
+            <ul>{TRUST.map(({ icon: Icon, label }) => <li key={label} className="reveal"><Icon size={18} aria-hidden="true" />{label}</li>)}</ul>
           </div>
         </section>
 

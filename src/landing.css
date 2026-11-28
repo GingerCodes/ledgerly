@@ -164,3 +164,59 @@
   .landing-band-row { flex-direction: column; align-items: flex-start; }
   .landing-final { padding: 56px 0; }
 }
+
+/* Motion */
+html:has(.landing) { scroll-behavior: smooth; scroll-padding-top: 76px; }
+@keyframes landing-rise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+@keyframes landing-window { from { opacity: 0; transform: translateX(48px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes landing-phone { from { opacity: 0; transform: translateY(60px) scale(.94); } to { opacity: 1; transform: none; } }
+@keyframes landing-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+@keyframes landing-drift { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-3%, 4%) scale(1.08); } }
+@keyframes landing-sweep { 0%, 55% { transform: translateX(-130%) skewX(-18deg); } 100% { transform: translateX(260%) skewX(-18deg); } }
+@keyframes landing-gradient { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+@keyframes landing-pop { 0% { transform: scale(.4); opacity: 0; } 70% { transform: scale(1.12); } 100% { transform: scale(1); opacity: 1; } }
+@keyframes landing-open { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+/* Hero: the words arrive one after another, then the pictures settle in and the phone gently floats. */
+.landing-hero-copy > * { animation: landing-rise .8s var(--ease-out) backwards; }
+.landing-hero-copy > :nth-child(1) { animation-delay: .05s; }
+.landing-hero-copy > :nth-child(2) { animation-delay: .15s; }
+.landing-hero-copy > :nth-child(3) { animation-delay: .3s; }
+.landing-hero-copy > :nth-child(4) { animation-delay: .45s; }
+.landing-hero-copy > :nth-child(5) { animation-delay: .6s; }
+.mock-window { animation: landing-window 1s var(--ease-out) .2s backwards; }
+.mock-phone { animation: landing-phone 1s var(--ease-spring) .55s backwards, landing-float 6s ease-in-out 1.8s infinite; }
+.landing-hero { isolation: isolate; }
+.landing-hero::before { content: ''; position: absolute; z-index: -1; right: -10%; top: -30%; width: 55%; height: 120%; border-radius: 50%; background: radial-gradient(closest-side, rgba(139, 92, 246, .22), transparent); animation: landing-drift 14s ease-in-out infinite; pointer-events: none; }
+
+/* Buttons: a soft shine passes over the main call to action now and then, and the arrow leans in on hover. */
+.landing .button-primary { position: relative; overflow: hidden; }
+.landing .button-primary::after { content: ''; position: absolute; inset: 0 auto 0 0; width: 40%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .35), transparent); animation: landing-sweep 5s ease-in-out 2s infinite; pointer-events: none; }
+.landing .button-band::after, .landing-band .button-primary::after { display: none; }
+.landing .button svg { transition: transform var(--dur) var(--ease-spring); }
+.landing .button:hover svg { transform: translateX(4px); }
+
+/* Header gets a shadow once you scroll. */
+.landing-header { transition: box-shadow var(--dur) ease, background-color var(--dur) ease; }
+.landing-header.scrolled { box-shadow: 0 8px 28px rgba(30, 20, 90, .12); }
+
+/* Sections arrive in sequence; icons and numbers pop. */
+.landing-trust li:nth-child(2), .landing-steps li:nth-child(2), .landing-benefit:nth-child(3n + 2), .landing-fact:nth-child(2) { transition-delay: .09s; }
+.landing-trust li:nth-child(3), .landing-steps li:nth-child(3), .landing-benefit:nth-child(3n), .landing-fact:nth-child(3) { transition-delay: .18s; }
+.landing-trust li:nth-child(4), .landing-fact:nth-child(4) { transition-delay: .27s; }
+.reveal-ready .step-number, .reveal-ready .benefit-icon { transform: scale(.4); opacity: 0; }
+.reveal-ready .in .step-number, .reveal-ready .in .benefit-icon { animation: landing-pop .6s var(--ease-spring) .15s both; }
+.landing-checks li { transition: transform var(--dur) var(--ease-out); }
+.reveal-ready .landing-checks.reveal:not(.in) li { opacity: 0; transform: translateX(-14px); }
+.landing-checks.reveal.in li { animation: landing-rise .6s var(--ease-out) backwards; }
+.landing-checks.reveal.in li:nth-child(2) { animation-delay: .1s; }
+.landing-checks.reveal.in li:nth-child(3) { animation-delay: .2s; }
+.landing-checks.reveal.in li:nth-child(4) { animation-delay: .3s; }
+.landing-fact { transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out); }
+@media (hover: hover) { .landing-fact:hover, .landing-steps li:hover { transform: translateY(-4px); box-shadow: var(--glow); } }
+.landing-steps li { transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out); }
+.landing-band { background-size: 220% 220%; animation: landing-gradient 12s ease-in-out infinite; }
+.faq-item[open] p { animation: landing-open .35s var(--ease-out); }
+.faq-item { transition: box-shadow var(--dur) ease, border-color var(--dur) ease; }
+.faq-item[open] { border-color: var(--green-text); box-shadow: var(--shadow); }
+.landing-table .us { animation: none; }
