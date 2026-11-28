@@ -2,8 +2,8 @@
 .landing { min-height: 100vh; color: var(--ink); background: var(--canvas); font-family: inherit; overflow-x: clip; }
 .landing a { color: inherit; }
 .landing-wrap { width: min(1120px, 100%); margin: 0 auto; padding: 0 24px; }
-.landing h1, .landing h2, .landing h3 { margin: 0; font-family: Manrope, 'Segoe UI', sans-serif; letter-spacing: -.02em; color: var(--ink); }
-.landing p { margin: 0; }
+:where(.landing) :is(h1, h2, h3) { margin: 0; font-family: Manrope, 'Segoe UI', sans-serif; letter-spacing: -.02em; color: var(--ink); }
+:where(.landing) p { margin: 0; }
 .skip-link { position: absolute; left: 12px; top: -48px; z-index: 100; padding: 10px 14px; border-radius: 8px; color: #fff; background: var(--green); transition: top .15s; }
 .skip-link:focus { top: 12px; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -19,6 +19,7 @@
 .landing-actions { display: flex; align-items: center; gap: 14px; }
 .landing-login { padding: 10px 6px; font-size: 15px; font-weight: 700; text-decoration: none; }
 .landing-login:hover { color: var(--green-text); }
+.landing .button-primary, .landing .button-primary:hover { color: #fff; }
 .landing .button { min-height: 44px; padding: 0 20px; border-radius: 10px; font-size: 15px; text-decoration: none; }
 .landing .button-lg { min-height: 54px; padding: 0 28px; border-radius: 12px; font-size: 17px; }
 .landing .button-secondary { color: var(--ink); background: transparent; border-color: var(--line); }
@@ -31,7 +32,9 @@
 .landing-hero h1 { font-size: clamp(38px, 5.4vw, 62px); font-weight: 800; line-height: 1.04; letter-spacing: -.035em; }
 .landing-lead { max-width: 56ch; margin-top: 18px; color: var(--muted); font-size: 18px; line-height: 1.6; }
 .landing-cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 30px; }
-.landing-micro { margin-top: 14px; color: var(--muted); font-size: 14px; }
+.landing-micro { display: flex; align-items: center; gap: 8px; margin-top: 20px; padding-left: 2px; color: var(--muted); font-size: 14px; line-height: 1.4; }
+.landing-micro::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--positive); box-shadow: 0 0 0 4px var(--positive-bg); }
+.landing-final .landing-micro { justify-content: center; margin-top: 22px; }
 .landing-hero-art { position: relative; min-width: 0; padding-bottom: 36px; }
 
 /* Illustrations */
@@ -156,6 +159,8 @@
   .landing-section { padding: 56px 0; }
   .landing-steps, .landing-benefits, .landing-privacy { grid-template-columns: 1fr; }
   .landing-cta-row .button { width: 100%; }
+  .landing-micro { justify-content: center; margin-top: 22px; }
+  .landing-hero-art { margin-top: 8px; }
   .landing-band-row { flex-direction: column; align-items: flex-start; }
   .landing-final { padding: 56px 0; }
 }
