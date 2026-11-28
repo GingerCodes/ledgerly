@@ -28,8 +28,35 @@ export function parseTheme(value: unknown): Theme {
   return value === 'light' || value === 'dark' ? value : 'system'
 }
 
-export function parsePalette(value: unknown): Palette {
-  return PALETTES.some((palette) => palette.id === value) ? (value as Palette) : 'classic'
+export function parsePalette(value: unknown): Palette | null {
+  return PALETTES.some((palette) => palette.id === value) ? (value as Palette) : null
+}
+
+/**
+ * Accounts created from this moment on start in Aurora, matching the home page. Anyone who signed up earlier keeps the
+ * Classic look until they choose otherwise, and an explicit choice always wins. Keep in step with public/theme-init.js.
+ */
+export const AURORA_FOR_ACCOUNTS_FROM = '2026-11-28T10:00:00Z'
+
+/** When the signed-in account was created, read from the saved sign-in session (so it works before the app has loaded). */
+function savedAccountCreatedAt(): string | null {
+  try {
+    for (let index = 0; index < localStorage.length; index++) {
+      const key = localStorage.key(index)
+      if (key && /^sb-.*-auth-token$/.test(key)) {
+        const saved = JSON.parse(localStorage.getItem(key) ?? 'null')
+        return saved?.user?.created_at ?? saved?.currentSession?.user?.created_at ?? null
+      }
+    }
+  } catch {
+    // unreadable storage or session: treat as a new visitor
+  }
+  return null
+}
+
+export function defaultPalette(): Palette {
+  const created = savedAccountCreatedAt()
+  return created && Date.parse(created) < Date.parse(AURORA_FOR_ACCOUNTS_FROM) ? 'classic' : 'aurora'
 }
 
 export function resolveTheme(theme: Theme, systemPrefersDark: boolean): 'light' | 'dark' {
@@ -54,7 +81,7 @@ function write(key: string, value: string): void {
 
 /** Both choices are kept per device. */
 export const loadTheme = (): Theme => parseTheme(read(MODE_KEY))
-export const loadPalette = (): Palette => parsePalette(read(PALETTE_KEY))
+export const loadPalette = (): Palette => parsePalette(read(PALETTE_KEY)) ?? defaultPalette()
 
 const systemQuery = () => (typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null)
 
