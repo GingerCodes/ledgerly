@@ -8,9 +8,9 @@ import type { FinanceDatabase } from '../../data/finance-database'
 import { AccountForm } from './AccountForm'
 import { SnapshotRow } from './SnapshotRow'
 
-export function AccountsPage() {
+export function AccountsPage({ startWithForm = false }: { startWithForm?: boolean }) {
   const { database, accounts, snapshots, runAction, showError } = useFinance()
-  const [accountForm, setAccountForm] = useState<Account | null | undefined>(undefined)
+  const [accountForm, setAccountForm] = useState<Account | null | undefined>(() => (startWithForm ? null : undefined))
   const [snapshotBalance, setSnapshotBalance] = useState('')
   const [snapshotAccountId, setSnapshotAccountId] = useState('')
   const [snapshotDate, setSnapshotDate] = useState(todayIso())

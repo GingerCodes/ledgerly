@@ -1,4 +1,4 @@
-import { ArrowDownLeft, ArrowUpRight, Banknote, BriefcaseBusiness, ChevronLeft, ChevronRight, Plus, Wallet } from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, Banknote, BriefcaseBusiness, ChevronLeft, ChevronRight, Wallet } from 'lucide-react'
 import { categoryPath, formatRupees, type Transaction } from '../../domain/models'
 import { useState } from 'react'
 import { useFinance, useFinanceQuery } from '../../app/finance-context'
@@ -28,7 +28,6 @@ export function OverviewPage({ onNavigate, onEditTransaction }: {
             <>
               <section className="page-heading">
                 <div><p className="eyebrow">YOUR MONEY, CLEARLY</p><h1>Good {CURRENT_HOUR < 12 ? 'morning' : CURRENT_HOUR < 18 ? 'afternoon' : 'evening'}.</h1><p className="page-subtitle">A clear view of your finances, all in one place.</p></div>
-                <button className="button button-primary desktop-only" onClick={() => onEditTransaction(null)}><Plus size={16} /> New transaction</button>
               </section>
               <div className="period-row">
                 {month !== currentMonth && <button className="text-button" onClick={() => setMonth(currentMonth)}>Back to this month</button>}
