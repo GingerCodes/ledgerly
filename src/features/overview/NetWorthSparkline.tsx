@@ -33,7 +33,7 @@ export function NetWorthSparkline({ points }: { points: NetWorthPoint[] }) {
   const line = smoothPath(points.map((point, index) => [x(index), y(point.totalPaise)]))
   return (
     <svg className="sparkline" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
-      <defs><linearGradient id="spark-fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#245c48" stopOpacity="0.16" /><stop offset="1" stopColor="#245c48" stopOpacity="0" /></linearGradient></defs>
+      <defs><linearGradient id="spark-fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style={{ stopColor: 'var(--chart-1)' }} stopOpacity="0.16" /><stop offset="1" style={{ stopColor: 'var(--chart-1)' }} stopOpacity="0" /></linearGradient></defs>
       <path className="sparkline-area" d={`${line} L100 40 L0 40 Z`} />
       <path className="sparkline-line" d={line} />
     </svg>

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { applyTheme, loadTheme, parseTheme, resolveTheme, saveTheme } from './theme'
+import { applyTheme, loadPalette, loadTheme, parsePalette, parseTheme, resolveTheme, savePalette, saveTheme } from './theme'
 
 function fakeStorage() {
   const data = new Map<string, string>()
@@ -37,5 +37,28 @@ describe('theme', () => {
     applyTheme('light')
     expect(document.documentElement.dataset.theme).toBe('light')
     expect(document.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe('#245c48')
+  })
+})
+
+describe('palette', () => {
+  beforeEach(() => {
+    fakeStorage()
+    document.head.innerHTML = '<meta name="theme-color" content="#245c48">'
+  })
+
+  it('falls back to classic and applies palette and mode together, with the matching browser colour', () => {
+    expect(parsePalette('aurora')).toBe('aurora')
+    expect(parsePalette('neon')).toBe('classic')
+    expect(loadPalette()).toBe('classic')
+
+    savePalette('aurora')
+    expect(loadPalette()).toBe('aurora')
+    expect(document.documentElement.dataset.palette).toBe('aurora')
+    expect(document.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe('#4f46e5')
+    saveTheme('dark')
+    expect(document.documentElement.dataset.theme).toBe('dark')
+    expect(document.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe('#0a0919')
+    savePalette('classic')
+    expect(document.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe('#0f1613')
   })
 })

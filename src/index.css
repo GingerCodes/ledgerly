@@ -21,6 +21,17 @@
   --coral: #c76c58;
   --blue: #6387b1;
   --purple: #8d78a9;
+  --gradient-primary: var(--green);
+  --glow: 0 2px 6px rgba(34, 86, 62, .12);
+  --card-accent: var(--paper);
+  --positive: var(--tx-315f44);
+  --positive-bg: var(--bg-eef6f0);
+  --chart-1: #245c48;
+  --chart-2: #589368;
+  --chart-3: #c9a227;
+  --chart-4: #b4533f;
+  --chart-5: #5b7db1;
+  --chart-6: #b8c2bb;
   --green-text: #245c48;
   --green-dark-text: #174432;
   --topbar-bg: rgba(255, 255, 255, .94);
