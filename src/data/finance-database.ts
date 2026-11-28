@@ -4,6 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { maskAccountNumber } from '../lib/format'
 import {
   accountLabel,
+  categoryTreeOrder,
   isIsoDate,
   type Account,
   type BalanceSnapshot,
@@ -641,9 +642,9 @@ export class FinanceDatabase {
   }
 
   getCategories(): Category[] {
-    return this.rows(
+    return categoryTreeOrder(this.rows(
       'SELECT id, name, parent_category_id, active FROM categories ORDER BY name',
-    ).map(readCategory)
+    ).map(readCategory))
   }
 
   /** Transactions dated from `startDate` to `endDate` inclusive (ISO dates), newest first. */
