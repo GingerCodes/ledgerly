@@ -30,7 +30,6 @@ export function SummaryCards({ month, summary, previous }: { month: string; summ
         <div className="metric-label"><span className="metric-icon green"><Wallet size={18} /></span> Net worth</div>
         <strong>{formatRupees(latest.totalPaise)}</strong>
         <small className={`delta ${netWorthChange >= 0 ? 'good' : 'bad'}`}>{netWorthChange >= 0 ? '▲' : '▼'} {formatRupees(Math.abs(netWorthChange))} vs {against} end</small>
-        <small className="card-breakdown">Cash &amp; savings {formatRupees(latest.cashPaise + latest.savingsPaise)} · Deposits {formatRupees(latest.fixedDepositsPaise)}</small>
       </article>
       <article className="metric-card">
         <div className="metric-label"><span className="metric-icon blue"><ArrowUpRight size={18} /></span> Income · {label}</div>
