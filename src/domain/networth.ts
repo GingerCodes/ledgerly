@@ -32,6 +32,15 @@ export function monthlyNetWorth(input: {
   months: number
 }): NetWorthPoint[] {
   const { accounts, transactions, deposits, endMonth, months } = input
+  // An account counts from its opening date, or from its first transaction if that is earlier: the opening date
+  // defaults to the day the account was added, so income entered for last month would otherwise vanish from last month.
+  const firstUse = new Map<string, string>()
+  for (const { date, accountId, fromAccountId, toAccountId } of transactions) {
+    for (const id of [accountId, fromAccountId, toAccountId]) {
+      if (id && (firstUse.get(id) ?? '9999') > date) firstUse.set(id, date)
+    }
+  }
+  const startOf = (account: Account) => [account.openingDate, firstUse.get(account.id) ?? account.openingDate].sort()[0]
   return Array.from({ length: months }, (_, index) => {
     const month = addMonths(endMonth, index - (months - 1))
     const monthEnd = `${month}-31` // every date in the month sorts at or before this
@@ -50,7 +59,7 @@ export function monthlyNetWorth(input: {
     let cashPaise = 0
     let savingsPaise = 0
     for (const account of accounts) {
-      if (account.openingDate > monthEnd) continue
+      if (startOf(account) > monthEnd) continue
       const balance = balances.get(account.id) ?? 0
       if (account.type === 'cash') cashPaise += balance
       else savingsPaise += balance
