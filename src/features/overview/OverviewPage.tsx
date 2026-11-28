@@ -1,28 +1,28 @@
-import { ArrowDownLeft, ArrowUpRight, Banknote, BriefcaseBusiness, ChevronLeft, ChevronRight, Wallet } from 'lucide-react'
-import { categoryPath, formatRupees, type Transaction } from '../../domain/models'
 import { useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { type Transaction } from '../../domain/models'
 import { useFinance, useFinanceQuery } from '../../app/finance-context'
 import { CURRENT_HOUR, todayIso } from '../../lib/dates'
 import { monthPeriod, shiftMonth } from '../../lib/period'
-import { NetWorthChart } from './NetWorthChart'
-import { maskAccountNumber } from '../../lib/format'
 import type { Section } from '../../app/navigation'
 import { EmptyState } from '../../components/EmptyState'
 import { TransactionTable } from '../../components/TransactionTable'
+import { SpendingPanel } from './SpendingPanel'
+import { SummaryCards } from './SummaryCards'
+import { UpcomingPanel } from './UpcomingPanel'
 
 export function OverviewPage({ onNavigate, onEditTransaction }: {
   onNavigate: (section: Section) => void
   onEditTransaction: (transaction: Transaction | null) => void
 }) {
-  const { accounts, categories, deposits } = useFinance()
+  const { accounts, categories } = useFinance()
   const currentMonth = todayIso().slice(0, 7)
   const [month, setMonth] = useState(currentMonth)
-  const period = monthPeriod(month)
-  const summary = useFinanceQuery((database) => database.getPeriodSummary(period.startDate, period.endDate), [period.startDate, period.endDate])
-  const recentTransactions = useFinanceQuery((database) => database.getRecentTransactions(5), [])
-  const spendingCategories = summary.expensesByCategory
-    .map((item) => ({ ...item, label: categoryPath(item.categoryId, categories) }))
-    .sort((left, right) => right.amountPaise - left.amountPaise)
+  const { startDate, endDate } = monthPeriod(month)
+  const previousMonth = monthPeriod(shiftMonth(month, -1))
+  const summary = useFinanceQuery((database) => database.getPeriodSummary(startDate, endDate), [startDate, endDate])
+  const previous = useFinanceQuery((database) => database.getPeriodSummary(previousMonth.startDate, previousMonth.endDate), [previousMonth.startDate, previousMonth.endDate])
+  const recentTransactions = useFinanceQuery((database) => database.getRecentTransactions(10), [])
 
   return (
             <>
@@ -37,28 +37,11 @@ export function OverviewPage({ onNavigate, onEditTransaction }: {
                 </div>
               </div>
               </section>
-              <section className="metric-grid">
-                <article className="metric-card"><div className="metric-label"><span className="metric-icon green"><Wallet size={18} /></span> Cash + savings</div><strong>{formatRupees(accounts.reduce((total, account) => total + account.currentBalancePaise, 0))}</strong><small>Across {accounts.length} accounts</small></article>
-                <article className="metric-card"><div className="metric-label"><span className="metric-icon coral"><ArrowDownLeft size={18} /></span> Expenses · {period.label}</div><strong>{formatRupees(summary?.expensePaise ?? 0)}</strong><small>{summary.transactionCount} transaction{summary.transactionCount === 1 ? '' : 's'} this month</small></article>
-                <article className="metric-card"><div className="metric-label"><span className="metric-icon blue"><ArrowUpRight size={18} /></span> Income · {period.label}</div><strong>{formatRupees(summary?.incomePaise ?? 0)}</strong><small>Transfers are excluded from income</small></article>
-                <article className="metric-card"><div className="metric-label"><span className="metric-icon purple"><BriefcaseBusiness size={18} /></span> Fixed deposits</div><strong>{formatRupees(deposits.filter((deposit) => deposit.status === 'active').reduce((total, deposit) => total + deposit.principalPaise, 0))}</strong><small>{deposits.filter((deposit) => deposit.status === 'active').length} active deposits</small></article>
-              </section>
+              <SummaryCards month={month} summary={summary} previous={previous} />
               <div className="dashboard-grid">
-                <section className="panel account-panel">
-                  <div className="panel-heading"><div><p className="eyebrow">YOUR ACCOUNTS</p><h2>Balances</h2></div><button className="text-button" onClick={() => onNavigate('accounts')}>View accounts <ChevronRight size={15} /></button></div>
-                  {accounts.length ? accounts.map((account) => (
-                    <div className="balance-row" key={account.id}><span className={`account-type-icon ${account.type}`}><Banknote size={17} /></span><span className="balance-name"><b>{account.name}</b><small>{account.id === 'CASH' ? 'Cash account' : `${account.institution} · ${maskAccountNumber(account.accountNumber)}`}</small></span><strong>{formatRupees(account.currentBalancePaise)}</strong></div>
-                  )) : <EmptyState>No accounts added.</EmptyState>}
-                </section>
-                <section className="panel spending-panel">
-                  <div className="panel-heading"><div><p className="eyebrow">WHERE IT GOES</p><h2>Top spending · {period.label}</h2></div></div>
-                  {spendingCategories.length ? spendingCategories.slice(0, 5).map((item, index) => {
-                    const percent = summary?.expensePaise ? (item.amountPaise / summary.expensePaise) * 100 : 0
-                    return <div className="spending-item" key={`${item.categoryId ?? 'none'}-${index}`}><div className="spending-copy"><span>{item.label}</span><b>{formatRupees(item.amountPaise)}</b></div><div className="progress-track"><span style={{ width: `${Math.min(percent, 100)}%` }} /></div></div>
-                  }) : <EmptyState>No expense categories yet.</EmptyState>}
-                </section>
+                <SpendingPanel month={month} summary={summary} previous={previous} />
+                <UpcomingPanel onNavigate={() => onNavigate('deposits')} />
               </div>
-              <NetWorthChart />
               <section className="panel recent-panel">
                 <div className="panel-heading"><div><p className="eyebrow">LATEST ACTIVITY</p><h2>Recent transactions</h2></div><button className="text-button" onClick={() => onNavigate('transactions')}>All transactions <ChevronRight size={15} /></button></div>
                 {recentTransactions.length ? <TransactionTable transactions={recentTransactions} accounts={accounts} categories={categories} onEdit={(item) => onEditTransaction(item)} compact /> : <EmptyState>Your transactions will appear here.</EmptyState>}

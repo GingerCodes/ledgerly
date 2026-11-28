@@ -2,11 +2,12 @@ import { ChartNoAxesCombined, Download } from 'lucide-react'
 import { categoryPath, formatRupees, type Transaction } from '../../domain/models'
 import { useFinance } from '../../app/finance-context'
 import { formatReportMonth } from '../../lib/dates'
+import { CategoryDonut } from '../../components/CategoryDonut'
+import { sliceColor } from '../../lib/chart-colors'
 import { EmptyState } from '../../components/EmptyState'
 import { TransactionTable } from '../../components/TransactionTable'
 import { UNCATEGORIZED, type ExpenseReport, type ExpenseReportFilters } from './useExpenseReport'
 
-const REPORT_COLORS = ['#245c48', '#589368', '#c9a227', '#b4533f', '#5b7db1', '#b8c2bb']
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
 export function ReportResults({ filters: reportFilters, report, onEditTransaction }: {
@@ -17,12 +18,7 @@ export function ReportResults({ filters: reportFilters, report, onEditTransactio
   const { accounts, categories } = useFinance()
   const { reportSummary, insights, reportTransactions, exportExpenseReport } = report
   // Top 5 categories get their own colour; the rest are lumped into one grey slice.
-  const categorySlices = reportSummary.categoryBreakdown.map((item, index) => ({ ...item, color: REPORT_COLORS[Math.min(index, 5)] }))
-  const donut = categorySlices.map((item, index) => {
-    const before = categorySlices.slice(0, index).reduce((sum, other) => sum + other.amountPaise, 0)
-    const total = reportSummary.totalPaise || 1
-    return `${item.color} ${(before / total) * 100}% ${((before + item.amountPaise) / total) * 100}%`
-  }).join(', ')
+  const categorySlices = reportSummary.categoryBreakdown.map((item, index) => ({ ...item, color: sliceColor(index) }))
   const weekdayTotals = insights?.weekdayTotalsPaise ?? []
   const busiestWeekday = weekdayTotals.indexOf(Math.max(...weekdayTotals, 1))
   const largestMonthlyExpense = Math.max(
@@ -85,7 +81,7 @@ export function ReportResults({ filters: reportFilters, report, onEditTransactio
                       <div className="panel-heading"><div><p className="eyebrow">CATEGORY DETAIL</p><h2>Where it went</h2></div></div>
                       {reportSummary.categoryBreakdown.length ? (
                         <>
-                          <div className="report-donut" style={{ background: `conic-gradient(${donut})` }} role="img" aria-label="Share of spending by category"><span>{formatRupees(reportSummary.totalPaise)}</span></div>
+                          <CategoryDonut slices={categorySlices} label="Share of spending by category">{formatRupees(reportSummary.totalPaise)}</CategoryDonut>
                           <div className="report-category-list">
                             {categorySlices.map((category) => (
                               <div className="report-category-row" key={category.categoryId ?? UNCATEGORIZED}>

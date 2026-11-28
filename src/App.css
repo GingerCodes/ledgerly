@@ -860,21 +860,6 @@ input[list]::-webkit-calendar-picker-indicator { display: none !important; }
 .period-range { color: #526258; font-size: 13px; }
 
 /* Net worth chart */
-.networth-panel { margin-bottom: 14px; }
-.networth-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; }
-.networth-head strong { color: #20332c; font-size: 26px; }
-.networth-change { font-size: 13px; font-weight: 600; }
-.networth-change.up { color: #315f44; }
-.networth-change.down { color: #91483c; }
-.networth-breakdown { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 8px 0 12px; color: #526258; font-size: 13px; }
-.networth-breakdown b { margin-left: 4px; color: #293a30; }
-.networth-chart { width: 100%; }
-.networth-chart svg { display: block; max-width: 100%; }
-.networth-grid { stroke: #e3e9e4; stroke-width: 1; }
-.networth-axis { fill: #526258; font-size: 12px; }
-.networth-area { fill: rgba(36, 92, 72, .12); }
-.networth-line { fill: none; stroke: #245c48; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
-.networth-dot { fill: #fff; stroke: #245c48; stroke-width: 2; }
 
 .check-row { display: flex !important; align-items: center; gap: 10px !important; }
 .check-row input { width: 20px !important; min-height: 20px !important; margin: 0; accent-color: #245c48; }
@@ -894,3 +879,23 @@ a.nav-item, a.brand { text-decoration: none; }
 .add-popup button { min-height: 44px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: #293a30; font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
 .add-popup button:hover, .add-popup button:focus-visible { background: #f1f6f2; }
 .page-heading .period-row { margin-bottom: 0; flex-wrap: nowrap; }
+
+.metric-card { position: relative; overflow: hidden; }
+.metric-card.has-spark > :not(.sparkline) { position: relative; }
+.sparkline { position: absolute; right: 0; bottom: 0; left: 0; width: 100%; height: 62%; pointer-events: none; }
+.sparkline-area { fill: rgba(36, 92, 72, .08); }
+.sparkline-line { fill: none; stroke: rgba(36, 92, 72, .22); stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.metric-card > .delta, .metric-card > .card-link { display: block; color: #526258; font-size: 12px; white-space: normal; }
+.metric-card > .delta.good { color: #315f44; font-weight: 600; }
+.metric-card > .delta.bad { color: #91483c; font-weight: 600; }
+.card-link { margin-top: 2px; text-decoration: none; }
+.card-link:hover { text-decoration: underline; }
+.spending-body { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; }
+.spending-body .report-donut { margin: 0; flex: none; }
+.spending-body .report-category-list { flex: 1 1 220px; min-width: 0; }
+.spending-facts { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 16px 0 0; padding-top: 12px; border-top: 1px solid #e7ece8; }
+.spending-facts dt { color: #526258; font-size: 12px; }
+.spending-facts dd { margin: 2px 0 0; color: #293a30; font-size: 14px; font-weight: 600; }
+.spending-facts dd small { color: #526258; font-size: 12px; font-weight: 400; }
+.upcoming-alert { margin: 0 0 10px; padding: 8px 10px; border-radius: 8px; color: #6b3a30; background: #fbefeb; font-size: 13px; }
+.upcoming-panel .balance-name b, .upcoming-panel .balance-name small { overflow: visible; text-overflow: clip; white-space: normal; }
