@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.svg', 'favicon-32.png', 'favicon-16.png', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.svg', 'favicon-32.png', 'favicon-16.png', 'apple-touch-icon.png', 'favicon-aurora.svg', 'favicon-aurora-32.png', 'favicon-aurora-16.png', 'apple-touch-icon-aurora.png'],
       manifest: {
         name: 'Ledgerly Personal Finance Tracker',
         short_name: 'Ledgerly',
