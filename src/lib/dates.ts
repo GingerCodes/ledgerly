@@ -16,3 +16,10 @@ export function todayIso(): string {
 export function formatReportMonth(month: string): string {
   return REPORT_MONTH_FORMATTER.format(new Date(`${month}-01T00:00:00.000Z`))
 }
+
+/** An ISO date moved by whole days (local calendar, so it is safe across month ends and daylight-saving changes). */
+export function shiftIsoDate(iso: string, days: number): string {
+  const [year, month, day] = iso.split('-').map(Number)
+  const moved = new Date(year, month - 1, day + days)
+  return `${moved.getFullYear()}-${String(moved.getMonth() + 1).padStart(2, '0')}-${String(moved.getDate()).padStart(2, '0')}`
+}

@@ -169,3 +169,7 @@ html.theme-fading, html.theme-fading *, html.theme-fading *::before, html.theme-
   .loading-bar::after { animation: none !important; width: 100%; }
   .report-donut { -webkit-mask-image: none; mask-image: none; }
 }
+
+/* The add-transaction sheet slides up from the bottom on phones. */
+@media (max-width: 760px) { .txn-sheet { animation: sheet-up var(--dur-slow) var(--ease-out) backwards; } }
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }

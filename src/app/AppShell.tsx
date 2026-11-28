@@ -51,7 +51,7 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName, y
   const transactionForm = openForm?.path === pathname ? openForm.transaction : undefined
   /** The Accounts page opens the account or deposit form when navigated to with `state.add`; the key remounts the page on each visit. */
   const addNew = (kind: AddKind) => {
-    if (kind === 'transaction') { navigate('/transactions'); showForm(null, '/transactions') }
+    if (kind === 'transaction') showForm(null)
     else navigate('/accounts', { state: { add: kind } })
   }
   const showForm = (transaction: Transaction | null, path = pathname) => setOpenForm({ transaction, path })
@@ -129,7 +129,7 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName, y
           <div className="page-transition" key={activeSection?.id ?? pathname}>
           <Routes>
             <Route path="/overview" element={<OverviewPage onNavigate={(section: Section) => navigate(`/${section}`)} onEditTransaction={(transaction) => showForm(transaction)} />} />
-            <Route path="/transactions" element={<TransactionsPage period={period} onYearChange={setYear} transactionForm={transactionForm} onOpenForm={showForm} onCloseForm={closeForm} onSave={saveTransaction} />} />
+            <Route path="/transactions" element={<TransactionsPage period={period} onYearChange={setYear} onOpenForm={showForm} />} />
             <Route path="/reports" element={<ReportsPage report={report} onEditTransaction={(item) => { navigate('/transactions'); showForm(item, '/transactions') }} />} />
             <Route path="/accounts" element={<AccountsPage key={locationKey} startWith={startWith} />} />
             <Route path="/deposits" element={<Navigate to="/accounts" replace />} />
@@ -144,9 +144,9 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName, y
 
       {menuOpen && <MobileMenu items={menuSections} onClose={closeMenu} />}
 
-      {transactionForm !== undefined && pathname === '/overview' && (
-        <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) closeForm() }}>
-          <div className="modal-content"><TransactionForm transaction={transactionForm} accounts={accounts} categories={categories} transactions={suggestions} onCancel={closeForm} onSave={saveTransaction} /></div>
+      {transactionForm !== undefined && (
+        <div className="modal-backdrop txn-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) closeForm() }}>
+          <div className="modal-content txn-sheet" role="dialog" aria-modal="true" aria-labelledby="transaction-form-title"><TransactionForm transaction={transactionForm} accounts={accounts} categories={categories} transactions={suggestions} onCancel={closeForm} onSave={saveTransaction} /></div>
         </div>
       )}
     </div>
