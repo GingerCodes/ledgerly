@@ -7,7 +7,6 @@ import { Logo } from '../components/Logo'
 import { MobileMenu } from '../components/MobileMenu'
 import { Notice } from '../components/Notice'
 import { AccountsPage } from '../features/accounts/AccountsPage'
-import { DepositsPage } from '../features/deposits/DepositsPage'
 import { OverviewPage } from '../features/overview/OverviewPage'
 import { ReportsPage } from '../features/reports/ReportsPage'
 import { useExpenseReport } from '../features/reports/useExpenseReport'
@@ -35,7 +34,7 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName, y
 }) {
   const { database, accounts, categories, notice, clearNotice, runAction, showError } = useFinance()
   const { pathname, key: locationKey, state: locationState } = useLocation()
-  const startWithForm = (locationState as { add?: boolean } | null)?.add === true
+  const startWith = (locationState as { add?: 'account' | 'deposit' } | null)?.add
   const navigate = useNavigate()
   const mode = yearView
   const [year, setYear] = useState(() => currentPeriodYear(mode))
@@ -50,10 +49,10 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName, y
   // so it disappears when you leave that screen, including with the browser's back button.
   const [openForm, setOpenForm] = useState<{ transaction: Transaction | null; path: string } | null>(null)
   const transactionForm = openForm?.path === pathname ? openForm.transaction : undefined
-  /** Account and deposit pages open their form when navigated to with `state.add`; the key remounts the page on each visit. */
+  /** The Accounts page opens the account or deposit form when navigated to with `state.add`; the key remounts the page on each visit. */
   const addNew = (kind: AddKind) => {
     if (kind === 'transaction') { navigate('/transactions'); showForm(null, '/transactions') }
-    else navigate(kind === 'account' ? '/accounts' : '/deposits', { state: { add: true } })
+    else navigate('/accounts', { state: { add: kind } })
   }
   const showForm = (transaction: Transaction | null, path = pathname) => setOpenForm({ transaction, path })
   const closeForm = () => setOpenForm(null)
@@ -131,8 +130,8 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName, y
             <Route path="/overview" element={<OverviewPage onNavigate={(section: Section) => navigate(`/${section}`)} onEditTransaction={(transaction) => showForm(transaction)} />} />
             <Route path="/transactions" element={<TransactionsPage period={period} onYearChange={setYear} transactionForm={transactionForm} onOpenForm={showForm} onCloseForm={closeForm} onSave={saveTransaction} />} />
             <Route path="/reports" element={<ReportsPage report={report} onEditTransaction={(item) => { navigate('/transactions'); showForm(item, '/transactions') }} />} />
-            <Route path="/accounts" element={<AccountsPage key={locationKey} startWithForm={startWithForm} />} />
-            <Route path="/deposits" element={<DepositsPage key={locationKey} startWithForm={startWithForm} />} />
+            <Route path="/accounts" element={<AccountsPage key={locationKey} startWith={startWith} />} />
+            <Route path="/deposits" element={<Navigate to="/accounts" replace />} />
             <Route path="/settings" element={<Navigate to="/settings/categories" replace />} />
             <Route path="/settings/:tab" element={<SettingsPage fullName={fullName} email={email} onSaveName={onUpdateName} yearView={yearView} onSaveYearView={onUpdateYearView} onSignOut={() => void signOut()} onAccountDeleted={() => onSignOut({ local: true })} />} />
             <Route path="*" element={<Navigate to="/overview" replace />} />

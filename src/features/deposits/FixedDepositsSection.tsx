@@ -11,7 +11,7 @@ import { CloseDepositForm } from './CloseDepositForm'
 import { DepositForm } from './DepositForm'
 import { RecordInterestForm } from './RecordInterestForm'
 
-export function DepositsPage({ startWithForm = false }: { startWithForm?: boolean }) {
+export function FixedDepositsSection({ startWithForm = false }: { startWithForm?: boolean }) {
   const { database, accounts, deposits, runAction } = useFinance()
   const [depositForm, setDepositForm] = useState<FixedDeposit | null | undefined>(() => (startWithForm ? null : undefined))
   const [closing, setClosing] = useState<FixedDeposit | null>(null)
@@ -36,9 +36,13 @@ export function DepositsPage({ startWithForm = false }: { startWithForm?: boolea
     setDepositForm(undefined)
   }
 
+  const open = deposits.filter((deposit) => deposit.status !== 'closed')
+  const openCount = open.length
+  const openPaise = open.reduce((sum, deposit) => sum + deposit.principalPaise, 0)
+
   return (
-            <>
-              <section className="page-heading"><div><p className="eyebrow">SAVINGS WITH A HORIZON</p><h1>Fixed deposits</h1><p className="page-subtitle">Track principal, tenure, maturity details, and estimated value.</p></div><button className="button button-primary" onClick={() => setDepositForm(null)}><Plus size={16} /> Add deposit</button></section>
+            <section className="account-section">
+              <div className="section-head"><div><h2>Fixed deposits</h2><p>{openCount} active · {formatRupees(openPaise)}</p></div><button className="button button-primary" onClick={() => setDepositForm(null)}><Plus size={16} /> Add deposit</button></div>
               {depositForm !== undefined && <DepositForm key={depositForm?.id ?? 'new-deposit'} deposit={depositForm} accounts={accounts} onCancel={() => setDepositForm(undefined)} onSave={createDeposit} />}
               {recording && (() => {
                 const next = fdPayoutSummary(recording, CURRENT_DATE, transactions)
@@ -64,7 +68,7 @@ export function DepositsPage({ startWithForm = false }: { startWithForm?: boolea
                   <div className="deposit-estimate"><small>{payout ? 'Returned at maturity · interest paid out' : 'Estimated maturity value · not bank-confirmed'}</small><strong>{estimate}</strong></div>
                   <div className="deposit-actions">{payout && deposit.status === 'active' && <button className="text-button" onClick={() => { setDepositForm(undefined); setClosing(null); setRecording(deposit) }}><Coins size={14} /> Record interest</button>}<button className="text-button" onClick={() => setDepositForm(deposit)}><Pencil size={14} /> Edit details</button>{deposit.status === 'active' && <button className="text-button danger-text" onClick={() => { setDepositForm(undefined); setRecording(null); setClosing(deposit) }}><Check size={14} /> Close deposit</button>}</div>
                 </article>
-              })}</section> : <section className="panel"><EmptyState>No fixed deposits added yet.</EmptyState></section>}
-            </>
+              })}</section> : <div className="panel"><EmptyState>No fixed deposits added yet.</EmptyState></div>}
+            </section>
   )
 }

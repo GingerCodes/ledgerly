@@ -1,6 +1,6 @@
-import { ArrowLeftRight, BriefcaseBusiness, ChartNoAxesCombined, Landmark, Settings, type LucideIcon } from 'lucide-react'
+import { ArrowLeftRight, ChartNoAxesCombined, Landmark, Settings, type LucideIcon } from 'lucide-react'
 
-export type Section = 'overview' | 'transactions' | 'reports' | 'accounts' | 'deposits' | 'settings'
+export type Section = 'overview' | 'transactions' | 'reports' | 'accounts' | 'settings'
 
 export interface SectionLink { id: Section; label: string; icon: LucideIcon; path: string; /** On phones this one is in the hamburger menu instead of the bottom bar. */ menu?: true }
 
@@ -9,7 +9,6 @@ export const sections: SectionLink[] = [
   { id: 'transactions', label: 'Transactions', icon: ArrowLeftRight, path: '/transactions' },
   { id: 'reports', label: 'Reports', icon: ChartNoAxesCombined, path: '/reports' },
   { id: 'accounts', label: 'Accounts', icon: Landmark, path: '/accounts', menu: true },
-  { id: 'deposits', label: 'Fixed deposits', icon: BriefcaseBusiness, path: '/deposits', menu: true },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/settings/categories', menu: true },
 ]
 

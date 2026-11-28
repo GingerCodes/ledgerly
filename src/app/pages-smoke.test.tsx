@@ -7,7 +7,6 @@ import { fakeSupabase } from '../test-support/fake-supabase'
 import { AccountsPage } from '../features/accounts/AccountsPage'
 import { BackupPage } from '../features/backup/BackupPage'
 import { CategoriesPage } from '../features/categories/CategoriesPage'
-import { DepositsPage } from '../features/deposits/DepositsPage'
 import { OverviewPage } from '../features/overview/OverviewPage'
 import { ReportsPage } from '../features/reports/ReportsPage'
 import { useExpenseReport } from '../features/reports/useExpenseReport'
@@ -53,10 +52,12 @@ describe('pages render', () => {
     expect(emptyPeriod).toContain('No transactions found for this period')
     expect(emptyPeriod).toContain('<option value="Groceries"')
     expect(render(<ReportsHarness />)).toContain('Generate report')
-    expect(render(<AccountsPage />)).toContain('Balance snapshots')
-    const deposits = render(<DepositsPage />)
-    expect(deposits).toContain('Funded from')
-    expect(deposits).toContain('HDFC')
+    const accountsPage = render(<AccountsPage />)
+    expect(accountsPage).toContain('Balance snapshots')
+    expect(accountsPage).toContain('Savings accounts')
+    expect(accountsPage).toContain('Fixed deposits') // the deposits section lives on this page now
+    expect(accountsPage).toContain('Funded from')
+    expect(accountsPage).toContain('HDFC')
     expect(render(<CategoriesPage />)).toContain('Food')
     expect(render(<BackupPage />)).toContain('Import transactions from CSV')
 
@@ -65,14 +66,14 @@ describe('pages render', () => {
     expect(shellAt('/transactions')).toContain('Search descriptions')
     expect(shellAt('/reports')).toContain('Generate report')
     expect(shellAt('/accounts')).toContain('Balance snapshots')
-    expect(shellAt('/deposits')).toContain('Funded from')
+    expect(shellAt('/accounts')).toContain('Funded from')
     expect(shellAt('/settings/categories')).toContain('Backup &amp; import')
     expect(shellAt('/settings/account')).toContain('Delete my account')
     const shell = shellAt('/overview')
     expect(shell).toContain('Alex Jose')
     expect(shell).toContain('me@example.com')
     expect(shell).toContain('Sign out')
-    expect(shell).toContain('Fixed deposits')
+    expect(shell).toContain('Accounts')
     expect(shell).toContain('Settings')
     await database.close()
   })
