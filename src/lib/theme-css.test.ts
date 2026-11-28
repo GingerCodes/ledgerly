@@ -31,7 +31,7 @@ describe('theme files', () => {
   })
 
   it('give Aurora its own value for every semantic variable the Classic theme sets', () => {
-    const semantic = ['--ink', '--muted', '--paper', '--canvas', '--line', '--green-text', '--gradient-primary', '--glow', '--card-accent', '--positive', '--positive-bg', '--shadow', '--topbar-bg', '--nav-bg', '--chart-1', '--chart-6']
+    const semantic = ['--ink', '--muted', '--paper', '--canvas', '--line', '--green-text', '--gradient-primary', '--glow', '--card-accent', '--positive', '--positive-bg', '--shadow', '--topbar-bg', '--nav-bg', '--chart-1', '--chart-6', '--spark-color']
     for (const name of semantic) {
       expect(classicLight.has(name), `classic ${name}`).toBe(true)
       expect(auroraLight.has(name), `aurora light ${name}`).toBe(true)
