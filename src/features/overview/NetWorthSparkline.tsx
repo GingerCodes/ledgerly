@@ -29,7 +29,7 @@ export function NetWorthSparkline({ points }: { points: NetWorthPoint[] }) {
   const low = Math.min(...totals)
   const range = Math.max(...totals) - low || 1
   const x = (index: number) => (index / Math.max(points.length - 1, 1)) * 100
-  const y = (value: number) => 34 - ((value - low) / range) * 26 // keeps the line inside the lower part of the card
+  const y = (value: number) => 37 - ((value - low) / range) * 15 // stays in the lower half so it does not cross the big number
   const line = smoothPath(points.map((point, index) => [x(index), y(point.totalPaise)]))
   return (
     <svg className="sparkline" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">

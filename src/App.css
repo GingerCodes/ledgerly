@@ -882,14 +882,12 @@ a.nav-item, a.brand { text-decoration: none; }
 
 .metric-card { position: relative; overflow: hidden; }
 .metric-card.has-spark > :not(.sparkline) { position: relative; }
-.sparkline { position: absolute; right: 8px; bottom: 8px; left: 8px; width: calc(100% - 16px); height: 55%; pointer-events: none; }
+.sparkline { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .sparkline-area { fill: url(#spark-fade); }
 .sparkline-line { fill: none; stroke: rgba(36, 92, 72, .22); stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
-.metric-card > .delta, .metric-card > .card-link { display: block; color: #526258; font-size: 12px; white-space: normal; }
+.metric-card > .delta { display: block; color: #526258; font-size: 12px; white-space: normal; }
 .metric-card > .delta.good { color: #315f44; font-weight: 600; }
 .metric-card > .delta.bad { color: #91483c; font-weight: 600; }
-.card-link { margin-top: 2px; text-decoration: none; }
-.card-link:hover { text-decoration: underline; }
 .spending-body { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; }
 .spending-body .report-donut { margin: 0; flex: none; }
 .spending-body .report-category-list { flex: 1 1 220px; min-width: 0; }
