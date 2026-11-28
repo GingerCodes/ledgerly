@@ -7,7 +7,7 @@ const account = (id: string, type: Account['type'], currentBalancePaise: number)
 })
 const deposit = (status: FixedDeposit['status'], principalPaise: number): FixedDeposit => ({
   id: status + principalPaise, institution: 'SBI', accountNumber: 'FD', principalPaise, startDate: '2026-01-01', maturityDate: '2026-02-01', annualRateBasisPoints: 700,
-  interestType: 'simple', compoundsPerYear: 1, linkedAccountId: null, fundingAccountId: null, maturityInstruction: '', status, closedDate: null, notes: '', createdAt: '', updatedAt: '',
+  interestType: 'simple', compoundsPerYear: 1, linkedAccountId: null, fundingAccountId: null, maturityInstruction: '', status, closedDate: null, principalReturned: false, notes: '', createdAt: '', updatedAt: '',
 })
 
 describe('accountsSummary', () => {

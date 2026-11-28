@@ -55,6 +55,7 @@ export function DepositForm({
         maturityInstruction,
         status: deposit?.status ?? 'active',
         closedDate: deposit?.closedDate ?? null,
+        principalReturned: deposit?.principalReturned ?? false,
         notes,
         createdAt: deposit?.createdAt ?? '',
         updatedAt: deposit?.updatedAt ?? '',
@@ -109,12 +110,18 @@ export function DepositForm({
             {interestType === 'payout' && <span className="field-hint">Paid into the linked maturity account below (or the funding account); only the principal comes back at maturity.</span>}
           </label>
         )}
-        <label>Funded from (savings account)
-          <select required={!deposit} value={fundingAccountId} onChange={(event) => setFundingAccountId(event.target.value)}>
-            <option value="">{deposit ? 'Not tracked' : 'Select account'}</option>
+        <label>Funded from (optional)
+          <select value={fundingAccountId} onChange={(event) => setFundingAccountId(event.target.value)}>
+            <option value="">Not tracked (started before I used Ledgerly)</option>
             {accounts.filter((account) => account.type === 'savings' && (account.status === 'active' || account.id === deposit?.fundingAccountId)).map((account) => <option key={account.id} value={account.id}>{accountLabel(account)} — {formatRupees(account.currentBalancePaise)}</option>)}
           </select>
-          <span className="field-hint">The principal is debited from this account.</span>
+          <span className="field-hint">
+            {!fundingAccountId
+              ? 'Nothing is taken from an account. Use this for deposits that started before you began using Ledgerly, or whose money is already outside your balance.'
+              : startDate < todayIso()
+                ? "The principal comes out of this account's balance today. If this deposit started before the balance you entered, leave this empty."
+                : 'The principal is debited from this account.'}
+          </span>
         </label>
         <label>Linked maturity account
           <select value={linkedAccountId} onChange={(event) => setLinkedAccountId(event.target.value)}>

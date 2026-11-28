@@ -5,7 +5,7 @@ import { fdPayoutSchedule, fdPayoutSummary, payoutDescription, payoutsToRecord }
 const deposit = (overrides: Partial<FixedDeposit> = {}): FixedDeposit => ({
   id: 'fd', institution: 'SBI', accountNumber: 'FD1', principalPaise: 10_000_000, startDate: '2026-01-15', maturityDate: '2027-01-15',
   annualRateBasisPoints: 700, interestType: 'payout', compoundsPerYear: 4, linkedAccountId: 'SB1', fundingAccountId: 'SB1',
-  maturityInstruction: '', status: 'active', closedDate: null, notes: '', createdAt: '', updatedAt: '', ...overrides,
+  maturityInstruction: '', status: 'active', closedDate: null, principalReturned: false, notes: '', createdAt: '', updatedAt: '', ...overrides,
 })
 const credit = (date: string, fd = deposit()): Transaction => ({
   id: date, date, type: 'income', accountId: 'SB1', fromAccountId: null, toAccountId: null, description: payoutDescription(fd),

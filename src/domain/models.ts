@@ -87,6 +87,8 @@ export interface FixedDeposit {
   status: 'active' | 'matured' | 'closed'
   /** When it was closed (`YYYY-MM-DD`); null while open and for deposits closed before this was recorded. */
   closedDate: string | null
+  /** For a deposit that had no source account: the principal was added to the receiving account when it closed. */
+  principalReturned: boolean
   notes: string
   createdAt: string
   updatedAt: string
