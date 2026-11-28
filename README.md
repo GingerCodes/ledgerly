@@ -103,7 +103,7 @@ Page-view analytics is off unless you set `VITE_GTM_ID` to a Google Tag Manager 
 - Every screen has its own URL, so links, bookmarks, refresh and the browser's back and forward buttons work: `/overview`, `/transactions`, `/reports`, `/accounts`, `/deposits`, `/settings/categories`, `/settings/backups`, `/settings/account`. `/` and unknown paths go to `/overview`. The browser tab title follows the screen.
 - **Settings** groups three tabs: Categories, Backup & import, and Account. Account lets you update your full name, sign out (installed app and phones), and permanently delete your account and all its data; the same email can then register again as a brand-new account.
 - Install the app: a banner offers installation in a browser (native prompt on Chrome, Edge, and Android; Add to Home Screen steps on iOS) and is hidden in the installed app and for 30 days after "Not now". A "new version available" banner offers a reload after each deployment.
-- Layouts are responsive: on phones the bottom navigation fits all six sections and transaction tables become cards. Sign out and the signed-in name sit at the bottom of the sidebar in a browser, and in Settings → Account in the installed app and on phones.
+- Layouts are responsive: on phones the bottom bar holds Overview, Transactions and Reports, a hamburger button in the top bar opens a menu with Accounts, Fixed deposits and Settings, and transaction tables become cards. Sign out and the signed-in name sit at the bottom of the sidebar in a browser, and in Settings → Account in the installed app and on phones.
 
 See [PLAN.md](./PLAN.md) for the data model, workflows, and architecture, and [SESSION_CONTEXT.md](./SESSION_CONTEXT.md) for the current implementation notes.
 

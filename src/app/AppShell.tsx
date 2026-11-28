@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router'
-import { ChevronRight, LockKeyhole, LogOut, Plus } from 'lucide-react'
+import { ChevronRight, LockKeyhole, LogOut, Menu, Plus } from 'lucide-react'
 import { type Transaction, type TransactionInput } from '../domain/models'
 import { Logo } from '../components/Logo'
+import { MobileMenu } from '../components/MobileMenu'
 import { Notice } from '../components/Notice'
 import { AccountsPage } from '../features/accounts/AccountsPage'
 import { DepositsPage } from '../features/deposits/DepositsPage'
@@ -16,7 +17,7 @@ import { currentPeriodYear, loadPeriodMode, makePeriod, savePeriodMode, type Per
 import { trackPageView } from '../lib/analytics'
 import { appVersion } from '../lib/version'
 import { useFinance, useFinanceQuery } from './finance-context'
-import { pageTitle, sectionOf, sections, type Section } from './navigation'
+import { menuSections, pageTitle, sectionOf, sections, type Section } from './navigation'
 
 export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }: {
   /** Name for the top bar (falls back to the email). */
@@ -43,6 +44,15 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }:
   const report = useExpenseReport(mode)
   const suggestions = useFinanceQuery((db) => db.getRecentTransactions(500), [])
   const activeSection = sections.find((item) => item.id === sectionOf(pathname))
+
+  // The phone menu belongs to the screen it was opened on, so the browser's back button closes it too.
+  const [menuAt, setMenuAt] = useState<string | null>(null)
+  const menuOpen = menuAt === pathname
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const closeMenu = () => {
+    setMenuAt(null)
+    menuButtonRef.current?.focus()
+  }
 
   // One page view per real screen; paths that only redirect have no title and are skipped.
   useEffect(() => {
@@ -77,8 +87,8 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }:
         </Link>
         <p className="nav-caption">WORKSPACE</p>
         <nav className="side-nav" aria-label="Main navigation">
-          {sections.map(({ id, label, icon: Icon, path }) => (
-            <NavLink key={id} to={path} className={({ isActive }) => `nav-item ${isActive ? 'selected' : ''}`} onClick={() => { closeForm(); clearNotice() }}>
+          {sections.map(({ id, label, icon: Icon, path, menu }) => (
+            <NavLink key={id} to={path} className={({ isActive }) => `nav-item ${isActive ? 'selected' : ''} ${menu ? 'nav-secondary' : ''}`} onClick={() => { closeForm(); clearNotice() }}>
               {({ isActive }) => <><Icon size={18} strokeWidth={1.8} /><span>{label}</span>{isActive && <ChevronRight className="nav-chevron" size={15} />}</>}
             </NavLink>
           ))}
@@ -97,6 +107,7 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }:
 
       <div className="main-column">
         <header className="topbar">
+          <button ref={menuButtonRef} type="button" className={`menu-button ${activeSection?.menu ? 'active' : ''}`} aria-label="Open menu" aria-expanded={menuOpen} aria-controls="mobile-menu" onClick={() => setMenuAt(pathname)}><Menu size={22} /></button>
           <div className="mobile-brand"><span className="brand-mark"><Logo /></span> Ledgerly</div>
           <div className="breadcrumb">Finance <ChevronRight size={14} /> <strong>{activeSection?.label}</strong></div>
           <div className="topbar-right">
@@ -119,6 +130,8 @@ export function AppShell({ userName, fullName, email, onSignOut, onUpdateName }:
         </main>
         <footer className="app-footer"><span>Ledgerly · Personal Finance Tracker · <span title="Release and commit this build was made from">{appVersion}</span></span><span><LockKeyhole size={13} /> Stored in your private account</span></footer>
       </div>
+
+      {menuOpen && <MobileMenu items={menuSections} onClose={closeMenu} />}
 
       {transactionForm !== undefined && pathname === '/overview' && (
         <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) closeForm() }}>
