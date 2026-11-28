@@ -1,6 +1,7 @@
 import initSqlJs, { type Database, type SqlValue } from 'sql.js'
 import wasmUrl from 'sql.js/dist/sql-wasm.wasm?url'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { maskAccountNumber } from '../lib/format'
 import {
   accountLabel,
   isIsoDate,
@@ -19,7 +20,7 @@ import {
 const APPLICATION_ID = 1_347_866_450
 const CURRENT_SCHEMA_VERSION = 1
 /** Sent with every save. The database function refuses saves from older app versions (see 20261128100000_require_current_client.sql) so a stale cached copy cannot overwrite columns it does not know about. Raise it whenever a migration adds a column. */
-const CLIENT_API_VERSION = 2
+const CLIENT_API_VERSION = 3
 const snapshotTables = [
   'accounts',
   'categories',
@@ -103,6 +104,7 @@ const schema = `
     funding_account_id TEXT REFERENCES accounts(id) ON DELETE RESTRICT,
     maturity_instruction TEXT NOT NULL DEFAULT '',
     status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'matured', 'closed')),
+    closed_date TEXT,
     notes TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
@@ -231,6 +233,7 @@ function readFixedDeposit(row: SqlRow): FixedDeposit {
     compoundsPerYear: readInteger(row, 'compounds_per_year'),
     linkedAccountId: readNullableString(row, 'linked_account_id'),
     fundingAccountId: readNullableString(row, 'funding_account_id'),
+    closedDate: readNullableString(row, 'closed_date'),
     maturityInstruction: readString(row, 'maturity_instruction'),
     status: readString(row, 'status') as FixedDeposit['status'],
     notes: readString(row, 'notes'),
@@ -341,7 +344,7 @@ function hydrateDatabase(database: Database, snapshot: CloudSnapshot): void {
   insertSnapshotRows(database, 'fixed_deposits', snapshot.fixed_deposits, [
     'id', 'institution', 'account_number', 'principal_paise', 'start_date', 'maturity_date',
     'annual_rate_basis_points', 'interest_type', 'compounds_per_year', 'linked_account_id',
-    'funding_account_id', 'maturity_instruction', 'status', 'notes', 'created_at', 'updated_at',
+    'funding_account_id', 'maturity_instruction', 'status', 'closed_date', 'notes', 'created_at', 'updated_at',
   ])
   insertSnapshotRows(database, 'balance_snapshots', snapshot.balance_snapshots, [
     'id', 'account_id', 'date', 'reported_balance_paise', 'source', 'notes', 'created_at',
@@ -624,7 +627,7 @@ export class FinanceDatabase {
   getAccounts(): Account[] {
     return this.rows(
       `SELECT a.*,
-        a.opening_balance_paise - COALESCE((SELECT SUM(f.principal_paise) FROM fixed_deposits f WHERE f.funding_account_id = a.id), 0) + COALESCE(SUM(
+        a.opening_balance_paise - COALESCE((SELECT SUM(f.principal_paise) FROM fixed_deposits f WHERE f.funding_account_id = a.id), 0) + COALESCE((SELECT SUM(f.principal_paise) FROM fixed_deposits f WHERE f.status = 'closed' AND f.funding_account_id IS NOT NULL AND COALESCE(f.linked_account_id, f.funding_account_id) = a.id), 0) + COALESCE(SUM(
           CASE
             WHEN t.type = 'income' AND t.account_id = a.id THEN t.amount_paise
             WHEN t.type = 'expense' AND t.account_id = a.id THEN -t.amount_paise
@@ -716,6 +719,11 @@ export class FinanceDatabase {
         a.opening_balance_paise - COALESCE((
           SELECT SUM(f.principal_paise) FROM fixed_deposits f
           WHERE f.funding_account_id = s.account_id AND f.start_date <= s.date
+        ), 0) + COALESCE((
+          SELECT SUM(f.principal_paise) FROM fixed_deposits f
+          WHERE f.status = 'closed' AND f.funding_account_id IS NOT NULL
+            AND COALESCE(f.linked_account_id, f.funding_account_id) = s.account_id
+            AND COALESCE(f.closed_date, substr(f.updated_at, 1, 10)) <= s.date
         ), 0) + COALESCE((
           SELECT SUM(
             CASE
@@ -1023,14 +1031,37 @@ export class FinanceDatabase {
     })
   }
 
-  async closeFixedDeposit(id: string): Promise<void> {
+  /**
+   * Closes a deposit. Its principal goes back to `accountId` (the balance rule counts it once the deposit is
+   * closed) and any interest is recorded as income in that account on the closing date.
+   */
+  async closeFixedDeposit(id: string, input: { date: string; accountId: string; interestPaise: number }): Promise<void> {
+    if (!isIsoDate(input.date)) throw new Error('Enter a valid closing date.')
+    if (!Number.isSafeInteger(input.interestPaise) || input.interestPaise < 0) throw new Error('Interest cannot be negative.')
+
     await this.enqueueWrite(() => {
-      const changed = this.database.run(
-        `UPDATE fixed_deposits SET status = 'closed', updated_at = ?
-         WHERE id = ? AND status <> 'closed'`,
-        [currentTime(), id],
-      ).getRowsModified()
-      if (changed !== 1) throw new Error('Active fixed deposit was not found.')
+      const deposit = this.rows('SELECT institution, account_number, start_date, status FROM fixed_deposits WHERE id = ?', [id])[0]
+      if (!deposit || readString(deposit, 'status') === 'closed') throw new Error('Active fixed deposit was not found.')
+      if (input.date < readString(deposit, 'start_date')) throw new Error('A deposit cannot close before it started.')
+      const account = this.rows('SELECT type, status FROM accounts WHERE id = ?', [input.accountId])[0]
+      if (!account || readString(account, 'type') !== 'savings' || readString(account, 'status') !== 'active') {
+        throw new Error('Choose an active savings account to receive the money.')
+      }
+
+      const now = currentTime()
+      this.database.run(
+        `UPDATE fixed_deposits SET status = 'closed', closed_date = ?, linked_account_id = ?, updated_at = ? WHERE id = ?`,
+        [input.date, input.accountId, now, id],
+      )
+      if (input.interestPaise > 0) {
+        this.database.run(
+          `INSERT INTO transactions
+            (id, date, type, account_id, from_account_id, to_account_id, description,
+             amount_paise, category_id, notes, created_at, updated_at)
+           VALUES (?, ?, 'income', ?, NULL, NULL, ?, ?, NULL, '', ?, ?)`,
+          [newId(), input.date, input.accountId, `Interest on FD ${readString(deposit, 'institution')} ${maskAccountNumber(readString(deposit, 'account_number'))}`, input.interestPaise, now, now],
+        )
+      }
     })
   }
 
@@ -1137,10 +1168,12 @@ export class FinanceDatabase {
     try {
       restored = new this.sql.Database(bytes)
       restored.run('PRAGMA foreign_keys = ON')
-      // Backups made before FD funding was tracked lack this column.
-      if (!restored.exec('PRAGMA table_info(fixed_deposits)')[0]?.values.some((column) => column[1] === 'funding_account_id')) {
+      // Backups made before these columns existed lack them.
+      const depositColumns = restored.exec('PRAGMA table_info(fixed_deposits)')[0]?.values.map((column) => column[1]) ?? []
+      if (!depositColumns.includes('funding_account_id')) {
         restored.run('ALTER TABLE fixed_deposits ADD COLUMN funding_account_id TEXT REFERENCES accounts(id) ON DELETE RESTRICT')
       }
+      if (!depositColumns.includes('closed_date')) restored.run('ALTER TABLE fixed_deposits ADD COLUMN closed_date TEXT')
       verifyDatabase(restored)
     } catch (error) {
       restored?.close()
