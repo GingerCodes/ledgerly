@@ -22,6 +22,8 @@ export function TransactionsPage({ period, onYearChange, onModeChange, transacti
 }) {
   const { database, accounts, categories, showSuccess, showError } = useFinance()
   const [transactionSearch, setTransactionSearch] = useState('')
+  // Suggestions come from recent history across all periods, not just the rows on screen (a new financial year starts empty).
+  const suggestions = useFinanceQuery((db) => db.getRecentTransactions(500), [])
   const transactions = useFinanceQuery((db) => db.getTransactions(period.startDate, period.endDate, transactionSearch), [period.startDate, period.endDate, transactionSearch])
 
   function exportYearCsv() {
@@ -41,7 +43,7 @@ export function TransactionsPage({ period, onYearChange, onModeChange, transacti
                 <div><p className="eyebrow">DAILY MONEY MOVEMENT</p><h1>Transactions</h1><p className="page-subtitle">Track spending, income, and transfers between accounts.</p></div>
                 <button className="button button-primary desktop-only" onClick={() => onOpenForm(null)}><Plus size={16} /> Add transaction</button>
               </section>
-              {transactionForm !== undefined && <TransactionForm key={transactionForm?.id ?? 'new-transaction'} transaction={transactionForm} accounts={accounts} categories={categories} transactions={transactions} onCancel={() => onCloseForm()} onSave={onSave} />}
+              {transactionForm !== undefined && <TransactionForm key={transactionForm?.id ?? 'new-transaction'} transaction={transactionForm} accounts={accounts} categories={categories} transactions={suggestions} onCancel={() => onCloseForm()} onSave={onSave} />}
               <section className="panel table-panel">
                 <div className="list-toolbar">
                   <div className="list-title"><h2>All transactions</h2><span className="count-pill">{transactions.length}</span></div>
