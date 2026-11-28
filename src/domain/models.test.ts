@@ -4,6 +4,7 @@ import {
   calculateAccountBalances,
   categoryDescendantIds,
   categoryPath,
+  categoryTreeOrder,
   estimateFixedDepositMaturityValue,
   parseNonNegativeRupeesToPaise,
   parseRupeesToPaise,
@@ -53,6 +54,28 @@ describe('category paths', () => {
     ]
 
     expect(categoryDescendantIds('food', tree)).toEqual(['food', 'groceries', 'produce'])
+  })
+})
+
+describe('category tree order', () => {
+  const category = (id: string, name: string, parentCategoryId: string | null): Category => ({ id, name, parentCategoryId, active: true })
+
+  it('lists each child directly under its own parent, not in one flat alphabetical list', () => {
+    const flat = [
+      category('travel', 'Travel', null),
+      category('flights', 'Flights', 'travel'),
+      category('food', 'Food', null),
+      category('groceries', 'Groceries', 'food'),
+      category('produce', 'Produce', 'groceries'),
+      category('dining', 'Dining out', 'food'),
+      category('bills', 'Bills', null),
+    ]
+    expect(categoryTreeOrder(flat).map((item) => item.id)).toEqual(['bills', 'food', 'dining', 'groceries', 'produce', 'travel', 'flights'])
+  })
+
+  it('keeps a category whose parent is missing, and ones caught in a cycle, instead of dropping them', () => {
+    const odd = [category('orphan', 'Orphan', 'gone'), category('a', 'A', 'b'), category('b', 'B', 'a'), category('root', 'Root', null)]
+    expect(categoryTreeOrder(odd).map((item) => item.id).sort()).toEqual(['a', 'b', 'orphan', 'root'])
   })
 })
 

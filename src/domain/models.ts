@@ -202,6 +202,36 @@ export function categoryPath(
   return names.length > 0 ? names.join(' > ') : 'Uncategorized'
 }
 
+/**
+ * Categories in tree order: each top-level category (by name) followed by its children, grandchildren and so on, so a
+ * list shows every child directly under its own parent. A category whose parent is missing counts as top level, and
+ * categories caught in a parent cycle are appended at the end instead of being dropped.
+ */
+export function categoryTreeOrder(categories: Category[]): Category[] {
+  const byName = (left: Category, right: Category) => left.name.localeCompare(right.name)
+  const ids = new Set(categories.map((category) => category.id))
+  const children = new Map<string, Category[]>()
+  const roots: Category[] = []
+  for (const category of categories) {
+    if (category.parentCategoryId && ids.has(category.parentCategoryId)) {
+      children.set(category.parentCategoryId, [...(children.get(category.parentCategoryId) ?? []), category])
+    } else {
+      roots.push(category)
+    }
+  }
+  const ordered: Category[] = []
+  const seen = new Set<string>()
+  const visit = (category: Category) => {
+    if (seen.has(category.id)) return
+    seen.add(category.id)
+    ordered.push(category)
+    for (const child of (children.get(category.id) ?? []).sort(byName)) visit(child)
+  }
+  for (const root of roots.sort(byName)) visit(root)
+  for (const rest of [...categories].sort(byName)) visit(rest)
+  return ordered
+}
+
 export function categoryDescendantIds(categoryId: string, categories: Category[]): string[] {
   const childrenByParent = new Map<string, string[]>()
   for (const category of categories) {
