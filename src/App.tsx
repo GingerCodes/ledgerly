@@ -8,6 +8,7 @@ import { supabaseSetup } from './data/supabase-client'
 import { displayName, fullName, yearViewOf } from './lib/user'
 import { AuthScreen } from './features/auth/AuthScreen'
 import './App.css'
+import './motion.css'
 
 function Splash({ title, children }: { title: string; children: ReactNode }) {
   return <main className="loading-screen"><div className="loading-mark"><Logo /></div><h1>{title}</h1>{children}</main>
@@ -18,7 +19,7 @@ function App() {
   const auth = useAuthSession(supabase)
   const { database, loadingError } = useFinanceDatabase(supabase, auth.session?.user.id)
 
-  if (!auth.authReady) return <Splash title="Ledgerly"><p>Connecting…</p></Splash>
+  if (!auth.authReady) return <Splash title="Ledgerly"><p>Connecting…</p><div className="loading-bar" aria-hidden="true" /></Splash>
 
   if (!auth.session) {
     return (
@@ -34,7 +35,7 @@ function App() {
   if (!database) {
     return (
       <Splash title="Personal Finance">
-        {loadingError ? <><p className="form-error" role="alert">{loadingError}</p><p>Your finance data could not be opened. Check the setup and reload.</p></> : <p>Loading your private finance data…</p>}
+        {loadingError ? <><p className="form-error" role="alert">{loadingError}</p><p>Your finance data could not be opened. Check the setup and reload.</p></> : <><p>Loading your private finance data…</p><div className="loading-bar" aria-hidden="true" /></>}
       </Splash>
     )
   }

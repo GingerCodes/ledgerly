@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { SegmentedControl } from '../../components/SegmentedControl'
 import { loadPalette, loadTheme, PALETTES, savePalette, saveTheme, THEMES, type Palette, type Theme } from '../../lib/theme'
 
 /** Colour palette and light/dark mode. Saved on this device only, so a phone and a computer can differ. */
@@ -19,13 +20,7 @@ export function AppearancePanel() {
           </button>
         ))}
       </div>
-      <div className="segmented" role="radiogroup" aria-label="Mode">
-        {THEMES.map((option) => (
-          <button key={option.id} type="button" role="radio" aria-checked={theme === option.id} className={theme === option.id ? 'selected' : ''} onClick={() => { setTheme(option.id); saveTheme(option.id) }}>
-            {option.label}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl options={THEMES.map((option) => ({ value: option.id, label: option.label }))} value={theme} onChange={(next) => { setTheme(next); saveTheme(next) }} label="Mode" />
     </section>
   )
 }

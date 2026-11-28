@@ -1,8 +1,15 @@
 import { useMemo, useRef, useState, type FormEvent } from 'react'
 import { accountLabel, categoryPath, parseRupeesToPaise, type Account, type Category, type Transaction, type TransactionInput } from '../../domain/models'
 import { ComboBox } from '../../components/ComboBox'
+import { SegmentedControl, type SegmentedOption } from '../../components/SegmentedControl'
 import { amountInputValue } from '../../lib/format'
 import { todayIso } from '../../lib/dates'
+
+const TYPE_OPTIONS: Array<SegmentedOption<TransactionInput['type']>> = [
+  { value: 'expense', label: 'Expense', tone: 'expense' },
+  { value: 'income', label: 'Income' },
+  { value: 'transfer', label: 'Transfer' },
+]
 
 export function TransactionForm({
   accounts,
@@ -108,13 +115,7 @@ export function TransactionForm({
       <div className="form-grid">
         <div className="span-two segmented-field">
           <span id="transaction-type-label">Transaction type</span>
-          <div className="segmented" role="radiogroup" aria-labelledby="transaction-type-label">
-            {(['expense', 'income', 'transfer'] as const).map((option) => (
-              <button key={option} type="button" role="radio" aria-checked={type === option} className={type === option ? `selected ${option}` : ''} onClick={() => chooseType(option)}>
-                {option[0].toUpperCase() + option.slice(1)}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl options={TYPE_OPTIONS} value={type} onChange={chooseType} labelledBy="transaction-type-label" />
         </div>
         <label>
           Date

@@ -70,3 +70,13 @@ describe('Aurora contrast (WCAG AA, 4.5:1)', () => {
     })
   }
 })
+
+describe('motion.css', () => {
+  it('switches every animation and transition off for people who ask for reduced motion', () => {
+    const css = read('motion.css')
+    const reduced = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)'))
+    expect(reduced).toContain('animation-duration: .01ms !important')
+    expect(reduced).toContain('transition-duration: .01ms !important')
+    expect(css.indexOf('@keyframes')).toBeLessThan(css.indexOf('@media (prefers-reduced-motion'))
+  })
+})
