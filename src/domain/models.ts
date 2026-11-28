@@ -1,6 +1,19 @@
 export type AccountType = 'cash' | 'savings'
 export type TransactionType = 'expense' | 'income' | 'transfer'
-export type FixedDepositInterestType = 'simple' | 'compound'
+/** `payout`: simple interest paid out to an account every period, so only the principal comes back at maturity. */
+export type FixedDepositInterestType = 'simple' | 'compound' | 'payout'
+
+/** Times per year interest is compounded or paid out; the stored number is `compoundsPerYear`. */
+export const INTEREST_FREQUENCIES = [
+  { perYear: 12, label: 'Monthly' },
+  { perYear: 4, label: 'Quarterly' },
+  { perYear: 2, label: 'Half-yearly' },
+  { perYear: 1, label: 'Yearly' },
+] as const
+
+export function interestFrequencyLabel(perYear: number): string {
+  return INTEREST_FREQUENCIES.find((item) => item.perYear === perYear)?.label ?? `${perYear} times a year`
+}
 
 export interface Account {
   id: string
@@ -251,6 +264,8 @@ export function estimateFixedDepositMaturityValue(fd: FixedDeposit): number {
   const maturity = new Date(`${fd.maturityDate}T00:00:00.000Z`)
   const days = (maturity.valueOf() - start.valueOf()) / 86_400_000
   if (days <= 0) return fd.principalPaise
+
+  if (fd.interestType === 'payout') return fd.principalPaise // the interest was paid out along the way
 
   const years = days / 365
   const annualRate = fd.annualRateBasisPoints / 10_000

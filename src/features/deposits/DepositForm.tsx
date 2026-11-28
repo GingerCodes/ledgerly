@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { accountLabel, estimateFixedDepositMaturityValue, formatRupees, isIsoDate, parseRupeesToPaise, type Account, type FixedDeposit, type FixedDepositInput } from '../../domain/models'
+import { accountLabel, estimateFixedDepositMaturityValue, formatRupees, INTEREST_FREQUENCIES, interestFrequencyLabel, isIsoDate, parseRupeesToPaise, type Account, type FixedDeposit, type FixedDepositInput } from '../../domain/models'
 import { amountInputValue } from '../../lib/format'
 import { todayIso } from '../../lib/dates'
 
@@ -95,10 +95,20 @@ export function DepositForm({
         <label>Maturity date<input required type="date" value={maturityDate} onChange={(event) => setMaturityDate(event.target.value)} /></label>
         <label>Interest calculation
           <select value={interestType} onChange={(event) => setInterestType(event.target.value as FixedDeposit['interestType'])}>
-            <option value="compound">Compound interest</option><option value="simple">Simple interest</option>
+            <option value="compound">Compound interest (paid at maturity)</option>
+            <option value="simple">Simple interest (paid at maturity)</option>
+            <option value="payout">Interest paid out regularly</option>
           </select>
         </label>
-        {interestType === 'compound' && <label>Compounds per year<input required min={1} max={365} type="number" value={compoundsPerYear} onChange={(event) => setCompoundsPerYear(event.target.value)} /></label>}
+        {interestType !== 'simple' && (
+          <label>{interestType === 'payout' ? 'Interest paid out' : 'Compounded'}
+            <select value={compoundsPerYear} onChange={(event) => setCompoundsPerYear(event.target.value)}>
+              {INTEREST_FREQUENCIES.map((item) => <option key={item.perYear} value={item.perYear}>{item.label}</option>)}
+              {!INTEREST_FREQUENCIES.some((item) => String(item.perYear) === compoundsPerYear) && <option value={compoundsPerYear}>{interestFrequencyLabel(Number(compoundsPerYear))}</option>}
+            </select>
+            {interestType === 'payout' && <span className="field-hint">Paid into the linked maturity account below (or the funding account); only the principal comes back at maturity.</span>}
+          </label>
+        )}
         <label>Funded from (savings account)
           <select required={!deposit} value={fundingAccountId} onChange={(event) => setFundingAccountId(event.target.value)}>
             <option value="">{deposit ? 'Not tracked' : 'Select account'}</option>

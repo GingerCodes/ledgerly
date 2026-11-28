@@ -12,8 +12,10 @@ function estimatedInterestPaise(deposit: FixedDeposit): number {
 }
 
 /** Closing a deposit returns its principal to an account and records the interest received as income. */
-export function CloseDepositForm({ deposit, accounts, onCancel, onSave }: {
+export function CloseDepositForm({ deposit, accounts, suggestedInterestPaise, onCancel, onSave }: {
   deposit: FixedDeposit
+  /** For payout deposits: interest due but not yet recorded. Other deposits use the maturity estimate. */
+  suggestedInterestPaise?: number
   accounts: Account[]
   onCancel: () => void
   onSave: (value: { date: string; accountId: string; interestPaise: number }) => Promise<void>
@@ -21,7 +23,7 @@ export function CloseDepositForm({ deposit, accounts, onCancel, onSave }: {
   const savings = accounts.filter((account) => account.type === 'savings' && account.status === 'active')
   const [date, setDate] = useState(todayIso())
   const [accountId, setAccountId] = useState(deposit.linkedAccountId ?? deposit.fundingAccountId ?? savings[0]?.id ?? '')
-  const [interest, setInterest] = useState(amountInputValue(estimatedInterestPaise(deposit)))
+  const [interest, setInterest] = useState(amountInputValue(suggestedInterestPaise ?? estimatedInterestPaise(deposit)))
   const [formError, setFormError] = useState('')
   const [saving, setSaving] = useState(false)
 

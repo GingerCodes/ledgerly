@@ -20,7 +20,7 @@ import {
 const APPLICATION_ID = 1_347_866_450
 const CURRENT_SCHEMA_VERSION = 1
 /** Sent with every save. The database function refuses saves from older app versions (see 20261128100000_require_current_client.sql) so a stale cached copy cannot overwrite columns it does not know about. Raise it whenever a migration adds a column. */
-const CLIENT_API_VERSION = 3
+const CLIENT_API_VERSION = 4
 const snapshotTables = [
   'accounts',
   'categories',
@@ -97,7 +97,7 @@ const schema = `
     start_date TEXT NOT NULL,
     maturity_date TEXT NOT NULL,
     annual_rate_basis_points INTEGER NOT NULL CHECK (annual_rate_basis_points >= 0),
-    interest_type TEXT NOT NULL CHECK (interest_type IN ('simple', 'compound')),
+    interest_type TEXT NOT NULL CHECK (interest_type IN ('simple', 'compound', 'payout')),
     compounds_per_year INTEGER NOT NULL CHECK (compounds_per_year BETWEEN 1 AND 365),
     linked_account_id TEXT REFERENCES accounts(id) ON DELETE SET NULL,
     funding_account_id TEXT REFERENCES accounts(id) ON DELETE RESTRICT,
