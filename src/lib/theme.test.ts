@@ -15,7 +15,7 @@ function fakeStorage() {
 describe('theme', () => {
   beforeEach(() => {
     fakeStorage()
-    document.head.innerHTML = '<meta name="theme-color" content="#245c48">'
+    document.head.innerHTML = '<meta name="theme-color" content="#245c48"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="apple-touch-icon" href="/apple-touch-icon.png">'
     delete document.documentElement.dataset.theme
   })
 
@@ -49,7 +49,7 @@ describe('theme', () => {
 describe('palette', () => {
   beforeEach(() => {
     fakeStorage()
-    document.head.innerHTML = '<meta name="theme-color" content="#245c48">'
+    document.head.innerHTML = '<meta name="theme-color" content="#245c48"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="apple-touch-icon" href="/apple-touch-icon.png">'
   })
 
   it('falls back to classic and applies palette and mode together, with the matching browser colour', () => {
@@ -66,6 +66,16 @@ describe('palette', () => {
     expect(document.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe('#0a0919')
     savePalette('classic')
     expect(document.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe('#0f1613')
+  })
+
+  it('swaps the browser icons with the palette', () => {
+    const href = (selector: string) => document.querySelector(selector)?.getAttribute('href')
+    savePalette('aurora')
+    expect(href('link[rel="icon"][type="image/svg+xml"]')).toBe('/favicon-aurora.svg')
+    expect(href('link[rel="apple-touch-icon"]')).toBe('/apple-touch-icon-aurora.png')
+    savePalette('classic')
+    expect(href('link[rel="icon"][type="image/svg+xml"]')).toBe('/favicon.svg')
+    expect(href('link[rel="apple-touch-icon"]')).toBe('/apple-touch-icon.png')
   })
 
   it('starts new accounts in Aurora and keeps older accounts in Classic until they choose', () => {
