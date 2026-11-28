@@ -37,6 +37,7 @@
   --topbar-bg: rgba(255, 255, 255, .94);
   --nav-bg: rgba(255, 255, 255, .97);
   --spark-line: rgba(36, 92, 72, .35);
+  --spark-color: #245c48;
   --shadow: 0 8px 26px rgba(37, 61, 48, 0.045);
   color-scheme: light;
 }
@@ -61,6 +62,7 @@
   --topbar-bg: rgba(24, 33, 28, .94);
   --nav-bg: rgba(24, 33, 28, .97);
   --spark-line: rgba(124, 201, 160, .45);
+  --spark-color: #4aa57c;
   --shadow: 0 8px 26px rgba(0, 0, 0, .35);
   color-scheme: dark;
 }

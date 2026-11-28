@@ -20,6 +20,7 @@
   --topbar-bg: rgba(255, 255, 255, .85);
   --nav-bg: rgba(255, 255, 255, .95);
   --spark-line: rgba(91, 91, 240, .5);
+  --spark-color: #5b5bf0;
   --shadow: 0 8px 28px rgba(86, 72, 232, .10);
   --gradient-primary: linear-gradient(135deg, #4f46e5, #7a4be0);
   --glow: 0 6px 18px rgba(79, 70, 229, .32);
@@ -218,6 +219,7 @@
   --topbar-bg: rgba(20, 18, 43, .85);
   --nav-bg: rgba(20, 18, 43, .96);
   --spark-line: rgba(168, 165, 255, .6);
+  --spark-color: #7c7cff;
   --shadow: 0 8px 28px rgba(0, 0, 0, .5);
   --gradient-primary: linear-gradient(135deg, #5b52f0, #8a52f0);
   --glow: 0 6px 22px rgba(124, 92, 255, .38);
