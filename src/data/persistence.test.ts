@@ -34,7 +34,9 @@ describe('saving transactions', () => {
     expect(history[0]).toMatchObject({ transaction_id: id, reason: 'Fixed the price' })
     expect(JSON.parse(history[0].changed_fields_json as string)).toEqual({ amountPaise: { before: 2000, after: 3000 } })
 
-    await expect(database.saveTransaction(expense({ accountId: 'SB1' }))).rejects.toThrow('Cash account')
+    const before = database.getAccounts().find((account) => account.id === 'SB1')!.currentBalancePaise
+    await database.saveTransaction(expense({ accountId: 'SB1', amountPaise: 500 }))
+    expect(database.getAccounts().find((account) => account.id === 'SB1')!.currentBalancePaise).toBe(before - 500)
     await expect(database.saveTransaction(expense({ type: 'transfer', accountId: null, fromAccountId: 'SB1', toAccountId: 'SB1', categoryId: null }))).rejects.toThrow('two different accounts')
     await expect(database.saveTransaction(expense({ amountPaise: 0 }))).rejects.toThrow('greater than zero')
     await database.close()

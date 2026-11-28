@@ -71,18 +71,16 @@ describe('year-wise transaction CSV', () => {
     ])
   })
 
-  it('rejects invalid dates, unknown accounts, and non-cash expenses before import', () => {
+  it('rejects invalid dates, and unknown accounts before import', () => {
     const csv = [
       'transaction_id,date,type,account_id,from_account_id,to_account_id,description,amount,category_id,notes',
       'bad-date,2026-02-30,expense,CASH,,,Groceries,10.00,food,',
       'unknown-account,2026-02-02,income,missing,,,Interest,10.00,,',
-      'bank-expense,2026-02-03,expense,savings,,,Coffee,2.50,food,',
     ].join('\n')
 
     const result = parseTransactionsCsv(csv, accounts, categories)
     expect(result.validRows).toEqual([])
-    expect(result.errors).toHaveLength(3)
-    expect(result.errors[2]).toContain('daily expenses must use the CASH account')
+    expect(result.errors).toHaveLength(2)
   })
 
   it('requires the complete interchange schema', () => {

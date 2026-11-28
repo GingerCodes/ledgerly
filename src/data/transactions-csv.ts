@@ -151,10 +151,6 @@ export function parseTransactionsCsv(
         issue('account_id must refer to an account in this database.')
         return
       }
-      if (type === 'expense' && accountId !== 'CASH') {
-        issue('daily expenses must use the CASH account.')
-        return
-      }
       if (fromAccountId || toAccountId) {
         issue('from_account_id and to_account_id are only valid for transfers.')
         return

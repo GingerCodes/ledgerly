@@ -82,8 +82,7 @@ const schema = `
         AND account_id IS NOT NULL
         AND from_account_id IS NULL
         AND to_account_id IS NULL)
-    ),
-    CHECK (type <> 'expense' OR account_id = 'CASH')
+    )
   );
 
   CREATE INDEX transactions_by_date ON transactions(date DESC);
@@ -617,9 +616,6 @@ export class FinanceDatabase {
     } else {
       if (!input.accountId || input.fromAccountId || input.toAccountId) {
         throw new Error('Choose an account for income or expense transactions.')
-      }
-      if (input.type === 'expense' && input.accountId !== 'CASH') {
-        throw new Error('Daily expenses must be recorded from the Cash account.')
       }
     }
   }

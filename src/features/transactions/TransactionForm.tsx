@@ -55,7 +55,6 @@ export function TransactionForm({
     if (nextType !== 'transfer') {
       setFromAccountId('')
       setToAccountId('')
-      if (nextType === 'expense') setAccountId('CASH')
     } else {
       setAccountId('')
       setCategoryId('')
@@ -154,13 +153,11 @@ export function TransactionForm({
             Account
             <select
               required
-              disabled={type === 'expense'}
-              value={type === 'expense' ? 'CASH' : accountId}
+              value={accountId}
               onChange={(event) => setAccountId(event.target.value)}
             >
-              {accounts.filter((account) => account.status === 'active' && (type !== 'expense' || account.id === 'CASH')).map((account) => <option key={account.id} value={account.id}>{accountLabel(account)}</option>)}
+              {accounts.filter((account) => account.status === 'active').map((account) => <option key={account.id} value={account.id}>{accountLabel(account)}</option>)}
             </select>
-            {type === 'expense' && <span className="field-hint">Daily expenses are recorded from cash.</span>}
           </label>
         )}
         {type !== 'transfer' && (
