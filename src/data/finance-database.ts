@@ -21,7 +21,7 @@ import {
 const APPLICATION_ID = 1_347_866_450
 const CURRENT_SCHEMA_VERSION = 1
 /** Sent with every save. The database function refuses saves from older app versions (see 20261128100000_require_current_client.sql) so a stale cached copy cannot overwrite columns it does not know about. Raise it whenever a migration adds a column. */
-const CLIENT_API_VERSION = 4
+const CLIENT_API_VERSION = 5
 const snapshotTables = [
   'accounts',
   'categories',
@@ -105,6 +105,7 @@ const schema = `
     maturity_instruction TEXT NOT NULL DEFAULT '',
     status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'matured', 'closed')),
     closed_date TEXT,
+    principal_returned INTEGER DEFAULT 0,
     notes TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
@@ -234,6 +235,7 @@ function readFixedDeposit(row: SqlRow): FixedDeposit {
     linkedAccountId: readNullableString(row, 'linked_account_id'),
     fundingAccountId: readNullableString(row, 'funding_account_id'),
     closedDate: readNullableString(row, 'closed_date'),
+    principalReturned: Number(row['principal_returned'] ?? 0) === 1,
     maturityInstruction: readString(row, 'maturity_instruction'),
     status: readString(row, 'status') as FixedDeposit['status'],
     notes: readString(row, 'notes'),
@@ -344,7 +346,7 @@ function hydrateDatabase(database: Database, snapshot: CloudSnapshot): void {
   insertSnapshotRows(database, 'fixed_deposits', snapshot.fixed_deposits, [
     'id', 'institution', 'account_number', 'principal_paise', 'start_date', 'maturity_date',
     'annual_rate_basis_points', 'interest_type', 'compounds_per_year', 'linked_account_id',
-    'funding_account_id', 'maturity_instruction', 'status', 'closed_date', 'notes', 'created_at', 'updated_at',
+    'funding_account_id', 'maturity_instruction', 'status', 'closed_date', 'principal_returned', 'notes', 'created_at', 'updated_at',
   ])
   insertSnapshotRows(database, 'balance_snapshots', snapshot.balance_snapshots, [
     'id', 'account_id', 'date', 'reported_balance_paise', 'source', 'notes', 'created_at',
@@ -624,7 +626,7 @@ export class FinanceDatabase {
   getAccounts(): Account[] {
     return this.rows(
       `SELECT a.*,
-        a.opening_balance_paise - COALESCE((SELECT SUM(f.principal_paise) FROM fixed_deposits f WHERE f.funding_account_id = a.id), 0) + COALESCE((SELECT SUM(f.principal_paise) FROM fixed_deposits f WHERE f.status = 'closed' AND f.funding_account_id IS NOT NULL AND COALESCE(f.linked_account_id, f.funding_account_id) = a.id), 0) + COALESCE(SUM(
+        a.opening_balance_paise - COALESCE((SELECT SUM(f.principal_paise) FROM fixed_deposits f WHERE f.funding_account_id = a.id), 0) + COALESCE((SELECT SUM(f.principal_paise) FROM fixed_deposits f WHERE f.status = 'closed' AND (f.funding_account_id IS NOT NULL OR f.principal_returned = 1) AND COALESCE(f.linked_account_id, f.funding_account_id) = a.id), 0) + COALESCE(SUM(
           CASE
             WHEN t.type = 'income' AND t.account_id = a.id THEN t.amount_paise
             WHEN t.type = 'expense' AND t.account_id = a.id THEN -t.amount_paise
@@ -725,7 +727,7 @@ export class FinanceDatabase {
           WHERE f.funding_account_id = s.account_id AND f.start_date <= s.date
         ), 0) + COALESCE((
           SELECT SUM(f.principal_paise) FROM fixed_deposits f
-          WHERE f.status = 'closed' AND f.funding_account_id IS NOT NULL
+          WHERE f.status = 'closed' AND (f.funding_account_id IS NOT NULL OR f.principal_returned = 1)
             AND COALESCE(f.linked_account_id, f.funding_account_id) = s.account_id
             AND COALESCE(f.closed_date, substr(f.updated_at, 1, 10)) <= s.date
         ), 0) + COALESCE((
@@ -980,9 +982,8 @@ export class FinanceDatabase {
         if (!funding || readString(funding, 'type') !== 'savings' || readString(funding, 'status') !== 'active') {
           throw new Error('Choose an active savings account to fund this deposit.')
         }
-      } else if (!input.id) {
-        throw new Error('Choose the savings account this deposit is funded from.')
       }
+      // No source account is allowed: a deposit that started before the user began using the app has no debit to record.
       const existing = input.id
         ? this.rows('SELECT created_at FROM fixed_deposits WHERE id = ?', [id])[0]
         : undefined
@@ -1026,7 +1027,7 @@ export class FinanceDatabase {
           now,
         ],
       )
-      // shortcut: balance is checked as of today, not the FD start date; upgrade if backdated FDs matter.
+      // shortcut: the balance is checked as of today, not the FD start date. Backdated deposits can simply have no source account.
       const funding = input.fundingAccountId && this.getAccounts().find((account) => account.id === input.fundingAccountId)
       if (funding && funding.currentBalancePaise < 0) {
         throw new Error(`Not enough balance in ${accountLabel(funding)} to fund this deposit.`)
@@ -1039,12 +1040,12 @@ export class FinanceDatabase {
    * Closes a deposit. Its principal goes back to `accountId` (the balance rule counts it once the deposit is
    * closed) and any interest is recorded as income in that account on the closing date.
    */
-  async closeFixedDeposit(id: string, input: { date: string; accountId: string; interestPaise: number }): Promise<void> {
+  async closeFixedDeposit(id: string, input: { date: string; accountId: string; interestPaise: number; returnPrincipal?: boolean }): Promise<void> {
     if (!isIsoDate(input.date)) throw new Error('Enter a valid closing date.')
     if (!Number.isSafeInteger(input.interestPaise) || input.interestPaise < 0) throw new Error('Interest cannot be negative.')
 
     await this.enqueueWrite(() => {
-      const deposit = this.rows('SELECT institution, account_number, start_date, status FROM fixed_deposits WHERE id = ?', [id])[0]
+      const deposit = this.rows('SELECT institution, account_number, start_date, status, funding_account_id FROM fixed_deposits WHERE id = ?', [id])[0]
       if (!deposit || readString(deposit, 'status') === 'closed') throw new Error('Active fixed deposit was not found.')
       if (input.date < readString(deposit, 'start_date')) throw new Error('A deposit cannot close before it started.')
       const account = this.rows('SELECT type, status FROM accounts WHERE id = ?', [input.accountId])[0]
@@ -1054,8 +1055,9 @@ export class FinanceDatabase {
 
       const now = currentTime()
       this.database.run(
-        `UPDATE fixed_deposits SET status = 'closed', closed_date = ?, linked_account_id = ?, updated_at = ? WHERE id = ?`,
-        [input.date, input.accountId, now, id],
+        `UPDATE fixed_deposits SET status = 'closed', closed_date = ?, linked_account_id = ?, principal_returned = ?, updated_at = ? WHERE id = ?`,
+        // A funded deposit always gives its principal back; one with no source only does when the user says so.
+        [input.date, input.accountId, !readNullableString(deposit, 'funding_account_id') && input.returnPrincipal ? 1 : 0, now, id],
       )
       if (input.interestPaise > 0) {
         this.database.run(
@@ -1178,6 +1180,7 @@ export class FinanceDatabase {
         restored.run('ALTER TABLE fixed_deposits ADD COLUMN funding_account_id TEXT REFERENCES accounts(id) ON DELETE RESTRICT')
       }
       if (!depositColumns.includes('closed_date')) restored.run('ALTER TABLE fixed_deposits ADD COLUMN closed_date TEXT')
+      if (!depositColumns.includes('principal_returned')) restored.run('ALTER TABLE fixed_deposits ADD COLUMN principal_returned INTEGER DEFAULT 0')
       verifyDatabase(restored)
     } catch (error) {
       restored?.close()

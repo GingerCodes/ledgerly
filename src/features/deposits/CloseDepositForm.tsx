@@ -18,11 +18,12 @@ export function CloseDepositForm({ deposit, accounts, suggestedInterestPaise, on
   suggestedInterestPaise?: number
   accounts: Account[]
   onCancel: () => void
-  onSave: (value: { date: string; accountId: string; interestPaise: number }) => Promise<void>
+  onSave: (value: { date: string; accountId: string; interestPaise: number; returnPrincipal: boolean }) => Promise<void>
 }) {
   const savings = accounts.filter((account) => account.type === 'savings' && account.status === 'active')
   const [date, setDate] = useState(todayIso())
   const [accountId, setAccountId] = useState(deposit.linkedAccountId ?? deposit.fundingAccountId ?? savings[0]?.id ?? '')
+  const [returnPrincipal, setReturnPrincipal] = useState(true)
   const [interest, setInterest] = useState(amountInputValue(suggestedInterestPaise ?? estimatedInterestPaise(deposit)))
   const [formError, setFormError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -32,7 +33,7 @@ export function CloseDepositForm({ deposit, accounts, suggestedInterestPaise, on
     setFormError('')
     setSaving(true)
     try {
-      await onSave({ date, accountId, interestPaise: parseNonNegativeRupeesToPaise(interest) })
+      await onSave({ date, accountId, interestPaise: parseNonNegativeRupeesToPaise(interest), returnPrincipal })
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Could not close this deposit.')
     } finally {
@@ -50,7 +51,7 @@ export function CloseDepositForm({ deposit, accounts, suggestedInterestPaise, on
       <p className="field-hint">
         {deposit.fundingAccountId
           ? 'The principal goes back to the account below, and the interest is recorded there as income.'
-          : 'This deposit was created before funding was tracked, so its principal was never taken from an account. Only the interest is recorded.'}
+          : 'This deposit has no source account, so nothing was taken from an account when it was added. Choose below whether the principal is added to the account that receives the money; the interest is recorded there as income.'}
       </p>
       <div className="form-grid">
         <label>Closed on<input required type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label>
@@ -59,6 +60,13 @@ export function CloseDepositForm({ deposit, accounts, suggestedInterestPaise, on
             {savings.map((account) => <option key={account.id} value={account.id}>{accountLabel(account)}</option>)}
           </select>
         </label>
+        {!deposit.fundingAccountId && (
+          <label className="span-two check-row">
+            <input type="checkbox" checked={returnPrincipal} onChange={(event) => setReturnPrincipal(event.target.checked)} />
+            <span>Add the principal ({formatRupees(deposit.principalPaise)}) to {accounts.find((account) => account.id === accountId) ? accountLabel(accounts.find((account) => account.id === accountId)!) : 'the account'}
+              <small className="field-hint">Untick if this account&rsquo;s balance already includes the deposit money.</small></span>
+          </label>
+        )}
         <label>Interest received (INR)
           <input required inputMode="decimal" value={interest} onChange={(event) => setInterest(event.target.value)} />
           <span className="field-hint">Pre-filled with an estimate. Enter what the bank actually paid, or 0.</span>
