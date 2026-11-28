@@ -26,6 +26,7 @@ The user selected Supabase as the cloud source of truth. Do not create test tran
   1. `20261127120000_finance_schema.sql` — tables, RLS, `finance_load_snapshot`, `finance_apply_changes`.
   2. `20261127130000_fd_funding_account.sql` — `funding_account_id` on fixed deposits and an updated `finance_apply_changes`.
   3. `20261127140000_delete_account.sql` — `finance_delete_account()` (security definer; deletes the caller's `auth.users` row, which cascades to all finance tables).
+  4. `20261128100000_require_current_client.sql` — `finance_apply_changes` refuses saves whose `changes.client_api_version` is below 2 (`FINANCE_OUTDATED`); the app sends `CLIENT_API_VERSION` with every save. **Deploy the app before running it.** When a migration adds a column, bump `CLIENT_API_VERSION` and the SQL check so stale cached copies cannot null out the new column.
 - `finance_apply_changes` sends incremental row changes in a transaction and checks a per-user revision to reject stale writes. If a function gains a column, its recordset list in the SQL must be updated too, or the field is silently dropped.
 - The Supabase project must expose the `public` schema (Settings → API). If PostgREST reports `PGRST002`, verify that and run `NOTIFY pgrst, 'reload schema';`.
 
@@ -58,7 +59,7 @@ The user selected Supabase as the cloud source of truth. Do not create test tran
 
 ## Verification state
 
-- 20 test files, 46 tests pass (`npm test`); `npm run lint` and `npm run build` pass. Tests use a real in-memory SQLite database with a fake Supabase client (`src/test-support/fake-supabase.ts`) and jsdom + Testing Library for components. The SQL functions are not tested outside a real Supabase project.
+- 22 test files, 56 tests pass (`npm test`); `npm run lint` and `npm run build` pass. Tests use a real in-memory SQLite database with a fake Supabase client (`src/test-support/fake-supabase.ts`) and jsdom + Testing Library for components. The SQL functions are not tested outside a real Supabase project.
 - The user confirmed on real devices: the FD funding migration and delete-account work, and the iPad/phone layouts are fine after the responsive fixes.
 - UI was also checked in headless Chromium and WebKit with a fake signed-in session (route-mocked `finance_load_snapshot`, `finance_apply_changes`, and `/auth/v1/**`, plus a `sb-test-auth-token` localStorage entry and a dev server started with fake `SB_URL` / `SB_ANON_KEY`). Chromium cannot emulate `display-mode: standalone`; real installed-app mode was only simulated.
 

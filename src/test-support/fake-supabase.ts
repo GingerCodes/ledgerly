@@ -11,14 +11,19 @@ export interface FakeSupabaseOptions {
   rpcResults?: Record<string, { data: unknown; error: { message: string } | null }>
   /** Receives the name of every RPC called. */
   calls?: string[]
+  /** Receives the arguments of every finance_apply_changes call. */
+  applied?: Array<{ expected_revision: number; changes: Record<string, { upsert: Record<string, unknown>[]; delete: string[] }> & { client_api_version?: number } }>
+  /** One-off responses per RPC name, used in order before the normal response (for example a conflict on the first save). */
+  queue?: Record<string, Array<{ data: unknown; error: { message: string } | null }>>
 }
 
 /** A Supabase client that serves one in-memory snapshot and accepts every save. */
 export function fakeSupabase(snapshot: Record<string, unknown[]> = {}, options: FakeSupabaseOptions = {}): SupabaseClient {
   return {
-    rpc: async (name: string) => {
+    rpc: async (name: string, args?: unknown) => {
       options.calls?.push(name)
-      return options.rpcResults?.[name] ?? defaultResult(name, snapshot)
+      if (name === 'finance_apply_changes') options.applied?.push(args as NonNullable<FakeSupabaseOptions['applied']>[number])
+      return options.queue?.[name]?.shift() ?? options.rpcResults?.[name] ?? defaultResult(name, snapshot)
     },
   } as unknown as SupabaseClient
 }
