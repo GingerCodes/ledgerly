@@ -789,6 +789,9 @@ html, body { overflow-x: hidden; }
 /* The browser's own suggestion arrow duplicates the suggestion list and looks like a stray glyph. */
 input[list]::-webkit-calendar-picker-indicator { display: none !important; }
 
+/* The hamburger button and the menu panel exist only on phones (the phone rules below switch them on). */
+.menu-button, .menu-backdrop { display: none; }
+
 /* Phones: show each transaction as a card so Amount is never hidden off-screen. */
 @media (max-width: 760px) {
   .app-shell .data-table, .app-shell .compact-table .data-table { display: block; min-width: 0; }
@@ -807,13 +810,20 @@ input[list]::-webkit-calendar-picker-indicator { display: none !important; }
   .app-shell .data-table .type-cell { grid-area: type; justify-self: end; }
   .app-shell .data-table .category-cell, .app-shell .data-table .table-note { max-width: none; }
   .app-shell .data-table .desc-cell .table-note { white-space: normal; }
-  /* All sections fit on one row: no sideways scrolling, so Settings is always reachable. */
-  .app-shell .side-nav { justify-content: space-between; overflow-x: visible; }
-  .app-shell .nav-item { flex: 1 1 0; min-width: 0; padding: 5px 1px; font-size: 11px; letter-spacing: -.1px; }
-  .app-shell .nav-item span { overflow-wrap: normal; word-break: normal; }
-}
-@media (max-width: 359px) {
-  .app-shell .nav-item { font-size: 9.5px; letter-spacing: -.3px; }
+  /* The bottom bar holds the three main sections; Accounts, Fixed deposits and Settings are in the hamburger menu. */
+  .app-shell .side-nav { justify-content: space-around; overflow-x: visible; }
+  .app-shell .nav-item { flex: 1 1 0; min-width: 0; }
+  .app-shell .nav-item.nav-secondary { display: none; }
+  .menu-button { display: inline-flex; width: 44px; height: 44px; flex: none; align-items: center; justify-content: center; margin-right: 2px; border: 0; border-radius: 10px; color: #344a3c; background: transparent; cursor: pointer; }
+  .menu-button.active { color: #fff; background: var(--green); }
+  .menu-button:focus-visible, .menu-close:focus-visible, .menu-link:focus-visible { outline: 2px solid #91b79d; outline-offset: 2px; }
+  .menu-backdrop { position: fixed; inset: 0; z-index: 900; display: block; background: rgba(20, 35, 28, .45); }
+  .mobile-menu { position: absolute; inset: 0 auto 0 0; display: flex; width: min(300px, 86vw); flex-direction: column; gap: 6px; overflow-y: auto; padding: 14px 12px calc(14px + env(safe-area-inset-bottom)); background: #fff; box-shadow: 8px 0 30px rgba(20, 35, 28, .25); }
+  .mobile-menu-head { display: flex; align-items: center; justify-content: space-between; padding: 0 6px 10px; color: #20332c; font-size: 16px; }
+  .menu-close { display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; border: 0; border-radius: 10px; color: #344a3c; background: transparent; cursor: pointer; }
+  .mobile-menu nav { display: grid; gap: 4px; }
+  .menu-link { display: flex; min-height: 48px; align-items: center; gap: 14px; padding: 0 14px; border-radius: 10px; color: #293a30; font-size: 16px; font-weight: 600; text-decoration: none; }
+  .menu-link.selected { color: #21573e; background: #ecf4ee; }
 }
 
 /* The logo artwork is its own tile, so the old green square behind the icon goes away. */

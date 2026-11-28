@@ -47,7 +47,7 @@ The user selected Supabase as the cloud source of truth. Do not create test tran
 - Sign out placement is pure CSS: sidebar bottom account block in a normal browser; Settings → Account when `(display-mode: standalone)` or width ≤ 760px.
 - PWA: install banner (`beforeinstallprompt`; iOS shows Add to Home Screen steps; hidden when standalone and for 30 days after dismissal), new-version banner (prompt mode), icons (coin-L favicon, 192/512, maskable, Apple touch).
 - Footer shows release tag and short commit (`VITE_RELEASE_TAG`, `VITE_COMMIT_SHA`); no "Supabase" wording appears in user-visible text.
-- Responsive: transaction tables become cards on phones; bottom nav fits six items.
+- Responsive: transaction tables become cards on phones. At 760px and below the bottom bar shows only Overview, Transactions and Reports; Accounts, Fixed deposits and Settings (the `menu: true` entries in `src/app/navigation.ts`) open from a hamburger button in the top bar (`MobileMenu`: Escape, backdrop and link click close it, back button closes it, the button is highlighted while one of those screens is open). Wider screens keep the full sidebar.
 - Year-wise CSV export, validated CSV import, AES-GCM encrypted backups.
 
 ## Deployment (important)
@@ -72,7 +72,6 @@ The user selected Supabase as the cloud source of truth. Do not create test tran
 - Existing accounts created before full names were collected have no name and show their email until one is saved in Settings → Account. The top-bar name label was removed; the name now shows in the sidebar block (hidden on phones and the installed app).
 - `App.css` is 700+ lines with several override layers (a11y and responsive passes); splitting it was deliberately not done to avoid cascade regressions.
 - The bundle contains the Supabase library's own internal strings (for example the `X-Supabase-Api-Version` header); only app-written UI text was changed.
-- On a 320px-wide phone the first two bottom-nav labels sit close together.
 
 ## Working conventions with this user
 
