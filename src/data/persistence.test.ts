@@ -78,7 +78,7 @@ describe('saving to the server', () => {
   it('sends the app version so older cached copies can be refused', async () => {
     const { database, applied } = await open()
     await database.saveTransaction(expense())
-    expect(applied[0].changes.client_api_version).toBe(3)
+    expect(applied[0].changes.client_api_version).toBe(4)
     await database.close()
   })
 

@@ -1,4 +1,5 @@
-import { useFinance } from '../../app/finance-context'
+import { useFinance, useFinanceQuery } from '../../app/finance-context'
+import { payoutsToRecord } from '../../domain/fd-payouts'
 import { EmptyState } from '../../components/EmptyState'
 import { formatRupees } from '../../domain/models'
 import { overdueDeposits, upcomingMaturities } from '../../domain/overview'
@@ -10,11 +11,14 @@ export function UpcomingPanel({ onNavigate }: { onNavigate: () => void }) {
   const today = todayIso()
   const upcoming = upcomingMaturities(deposits, today)
   const overdue = overdueDeposits(deposits, today)
+  const transactions = useFinanceQuery((database) => database.getAllTransactions(), [])
+  const toRecord = payoutsToRecord(deposits, today, transactions)
 
   return (
     <section className="panel upcoming-panel">
       <div className="panel-heading"><div><p className="eyebrow">COMING UP</p><h2>Deposits maturing soon</h2></div><button className="text-button" onClick={onNavigate}>Fixed deposits <ChevronRight size={15} /></button></div>
       {overdue.length > 0 && <p className="upcoming-alert" role="status">{overdue.length} deposit{overdue.length === 1 ? ' is' : 's are'} past maturity and not closed yet.</p>}
+      {toRecord > 0 && <p className="upcoming-alert" role="status">{toRecord} interest payout{toRecord === 1 ? '' : 's'} to record on your fixed deposits.</p>}
       {upcoming.length ? upcoming.map(({ deposit, estimatePaise }) => (
         <div className="balance-row" key={deposit.id}>
           <span className="balance-name"><b>{deposit.institution}</b><small>Matures {deposit.maturityDate} · principal {formatRupees(deposit.principalPaise)}</small></span>

@@ -74,7 +74,21 @@ describe('closing a fixed deposit', () => {
   it('sends the new app version so older cached copies are refused', async () => {
     const { database, applied } = await open()
     await database.saveFixedDeposit(deposit)
-    expect(applied[0].changes.client_api_version).toBe(3)
+    expect(applied[0].changes.client_api_version).toBe(4)
+    await database.close()
+  })
+
+  it('keeps a payout deposit through a save and records its interest as income that no longer shows as due', async () => {
+    const { database } = await open()
+    const id = await database.saveFixedDeposit({ ...deposit, interestType: 'payout', compoundsPerYear: 4, startDate: '2026-03-01', maturityDate: '2027-03-01', linkedAccountId: 'SB2' })
+    const saved = database.getFixedDeposits().find((item) => item.id === id)!
+    expect(saved).toMatchObject({ interestType: 'payout', compoundsPerYear: 4 })
+
+    const { fdPayoutSummary, payoutDescription } = await import('../domain/fd-payouts')
+    expect(fdPayoutSummary(saved, '2026-06-02', database.getAllTransactions()).due).toHaveLength(1)
+    await database.saveTransaction({ type: 'income', date: '2026-06-02', accountId: 'SB2', fromAccountId: null, toAccountId: null, description: payoutDescription(saved), amountPaise: 7_000, categoryId: null, notes: '' })
+    expect(balance(database, 'SB2')).toBe(7_000)
+    expect(fdPayoutSummary(saved, '2026-06-02', database.getAllTransactions()).due).toEqual([])
     await database.close()
   })
 })
