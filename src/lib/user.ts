@@ -1,4 +1,5 @@
 import type { User } from '@supabase/supabase-js'
+import { parsePeriodMode, type PeriodMode } from './period'
 
 type NamedUser = Pick<User, 'email' | 'user_metadata'>
 
@@ -19,4 +20,9 @@ export function fullName(user: NamedUser): string {
 /** The name to show in the UI; older accounts without a name fall back to the email address. */
 export function displayName(user: NamedUser): string {
   return fullName(user) || (user.email ?? '')
+}
+
+/** The user's year view preference, saved with their profile so it follows them to every device. */
+export function yearViewOf(user: Pick<User, 'user_metadata'>): PeriodMode {
+  return parsePeriodMode(user.user_metadata?.year_view)
 }

@@ -2,18 +2,16 @@ import { useState } from 'react'
 import { Download, Plus, Search } from 'lucide-react'
 import { type Transaction, type TransactionInput } from '../../domain/models'
 import { useFinance, useFinanceQuery } from '../../app/finance-context'
-import { makePeriod, periodYearOptions, type Period, type PeriodMode } from '../../lib/period'
-import { PeriodToggle } from '../../components/PeriodToggle'
+import { makePeriod, periodYearOptions, type Period } from '../../lib/period'
 import { downloadFile } from '../../lib/format'
 import { exportTransactionsCsv } from '../../data/transactions-csv'
 import { EmptyState } from '../../components/EmptyState'
 import { TransactionTable } from '../../components/TransactionTable'
 import { TransactionForm } from './TransactionForm'
 
-export function TransactionsPage({ period, onYearChange, onModeChange, transactionForm, onOpenForm, onCloseForm, onSave }: {
+export function TransactionsPage({ period, onYearChange, transactionForm, onOpenForm, onCloseForm, onSave }: {
   period: Period
   onYearChange: (year: number) => void
-  onModeChange: (mode: PeriodMode) => void
   /** undefined = form closed, null = new transaction, otherwise the transaction being edited. */
   transactionForm: Transaction | null | undefined
   onOpenForm: (transaction: Transaction | null) => void
@@ -47,7 +45,6 @@ export function TransactionsPage({ period, onYearChange, onModeChange, transacti
               <section className="panel table-panel">
                 <div className="list-toolbar">
                   <div className="list-title"><h2>All transactions</h2><span className="count-pill">{transactions.length}</span></div>
-                  <PeriodToggle mode={period.mode} onChange={onModeChange} />
                   <div className="toolbar-controls">
                     <label className="search-field"><Search size={16} /><input value={transactionSearch} onChange={(event) => setTransactionSearch(event.target.value)} placeholder="Search descriptions" /></label>
                     <select className="year-select" aria-label="Period" value={period.year} onChange={(event) => onYearChange(Number(event.target.value))}>{periodYearOptions(period.mode).map((value) => <option key={value} value={value}>{makePeriod(period.mode, value).label}</option>)}</select>
