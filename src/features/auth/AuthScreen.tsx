@@ -1,21 +1,29 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { Link, useLocation } from 'react-router'
+import { rememberAfterLogin } from '../../lib/afterLogin'
 import { Logo } from '../../components/Logo'
 import { trackPageView } from '../../lib/analytics'
 import { MAX_NAME_LENGTH } from '../../lib/user'
 
 export function AuthScreen({
+  mode,
+  showHomeLink,
   client,
   configurationError,
   externalError,
   clearExternalError,
 }: {
+  mode: 'sign-in' | 'sign-up'
+  /** A way back to the marketing page; left out in the installed app, which has no home page. */
+  showHomeLink: boolean
   client: SupabaseClient | null
   configurationError: string
   externalError: string
   clearExternalError: () => void
 }) {
-  const [creatingAccount, setCreatingAccount] = useState(false)
+  const creatingAccount = mode === 'sign-up'
+  const location = useLocation()
   useEffect(() => {
     trackPageView(creatingAccount ? '/sign-up' : '/sign-in', creatingAccount ? 'Create account' : 'Sign in')
   }, [creatingAccount])
@@ -67,6 +75,8 @@ export function AuthScreen({
     setError('')
     setSuccess('')
     try {
+      // Google brings the user back to the home address; remember where they were heading.
+      rememberAfterLogin((location.state as { from?: string } | null)?.from ?? '/overview')
       const { error: signInError } = await client.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: `${window.location.origin}/` },
@@ -82,9 +92,10 @@ export function AuthScreen({
   return (
     <main className="auth-screen">
       <section className="auth-card">
+        {showHomeLink && <Link className="auth-home" to="/">← Back to home</Link>}
         <div className="loading-mark"><Logo /></div>
         <p className="eyebrow">PRIVATE FINANCE TRACKER</p>
-        <h1>{client ? 'Sign in to Ledgerly' : 'Set up Ledgerly'}</h1>
+        <h1>{!client ? 'Set up Ledgerly' : creatingAccount ? 'Create your Ledgerly account' : 'Sign in to Ledgerly'}</h1>
         <p className="auth-description">
           {client
             ? 'Your finance records are stored in your private account.'
@@ -111,9 +122,9 @@ export function AuthScreen({
             <button className="button button-secondary" type="button" disabled={busy} onClick={() => void signInWithGoogle()}>
               Continue with Google
             </button>
-            <button className="auth-switch" type="button" disabled={busy} onClick={() => { setCreatingAccount(!creatingAccount); clearExternalError(); setError(''); setSuccess('') }}>
+            <Link className="auth-switch" to={creatingAccount ? '/sign-in' : '/sign-up'} state={location.state} onClick={() => { clearExternalError(); setError(''); setSuccess('') }}>
               {creatingAccount ? 'Already have an account? Sign in' : 'New to Ledgerly? Create an account'}
-            </button>
+            </Link>
           </form>
         )}
       </section>

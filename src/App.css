@@ -920,3 +920,6 @@ a.nav-item, a.brand { text-decoration: none; }
 .search-clear:hover { color: var(--ink); background: rgba(128, 128, 128, .18); }
 .search-clear:focus-visible { outline: 2px solid var(--ln-91b79d); outline-offset: 1px; }
 @media (max-width: 760px) { .search-clear { width: 32px; height: 32px; } }
+.auth-home { display: inline-block; margin-bottom: 14px; color: var(--tx-526258); font-size: 13px; font-weight: 600; text-decoration: none; }
+.auth-home:hover { text-decoration: underline; }
+button.auth-switch, a.auth-switch { display: inline-flex; align-items: center; justify-content: center; }
