@@ -49,9 +49,9 @@ describe('AuthScreen registration', () => {
     memoryStorage()
     setup()
     expect(screen.getByRole('link', { name: /Back to home/ }).getAttribute('href')).toBe('/')
-    expect(screen.getByRole('heading', { name: 'Sign in to Ledgerly' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Welcome back' })).toBeTruthy()
     await userEvent.click(screen.getByRole('link', { name: /Create an account/ }))
-    expect(screen.getByRole('heading', { name: 'Create your Ledgerly account' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Create your account' })).toBeTruthy()
     expect(screen.getByRole('link', { name: /Already have an account/ }).getAttribute('href')).toBe('/sign-in')
   })
 

@@ -117,14 +117,17 @@ export function AuthScreen({
     <main className="auth-screen">
       <section className="auth-card">
         {showHomeLink && <Link className="auth-home" to="/">← Back to home</Link>}
-        <div className="loading-mark"><Logo /></div>
-        <p className="eyebrow">PRIVATE FINANCE TRACKER</p>
-        <h1>{!client ? 'Set up Ledgerly' : creatingAccount ? 'Create your Ledgerly account' : 'Sign in to Ledgerly'}</h1>
-        <p className="auth-description">
-          {client
-            ? 'Your finance records are stored in your private account.'
-            : 'Set SB_URL and SB_ANON_KEY in a local environment file.'}
-        </p>
+        <header className="auth-head">
+          <span className="auth-brand"><span className="brand-mark"><Logo /></span>Ledgerly</span>
+          <h1>{!client ? 'Set up Ledgerly' : creatingAccount ? 'Create your account' : 'Welcome back'}</h1>
+          <p className="auth-description">
+            {!client
+              ? 'Set SB_URL and SB_ANON_KEY in a local environment file.'
+              : creatingAccount
+                ? 'Free during early access. No card needed.'
+                : 'Sign in to your private Ledgerly account.'}
+          </p>
+        </header>
         {(configurationError || externalError || error) && (
           <p className="form-error" role="alert">{configurationError || externalError || error}</p>
         )}
