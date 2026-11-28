@@ -923,3 +923,12 @@ a.nav-item, a.brand { text-decoration: none; }
 .auth-home { display: inline-block; margin-bottom: 14px; color: var(--tx-526258); font-size: 13px; font-weight: 600; text-decoration: none; }
 .auth-home:hover { text-decoration: underline; }
 button.auth-switch, a.auth-switch { display: inline-flex; align-items: center; justify-content: center; }
+
+.auth-methods { display: grid; gap: 12px; margin-top: 22px; }
+.auth-methods .auth-form { margin-top: 0; animation: rise var(--dur) var(--ease-out) backwards; }
+.auth-google { min-height: 54px; gap: 12px; border-radius: 12px; font-size: 16px; }
+.google-badge { display: inline-grid; width: 30px; height: 30px; place-items: center; border-radius: 50%; background: #fff; }
+.auth-fast { margin: -4px 0 0; color: var(--tx-526258); font-size: 13px; text-align: center; }
+.auth-divider { display: flex; align-items: center; gap: 12px; color: var(--tx-526258); font-size: 13px; }
+.auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--ln-e3ebe4); }
+.auth-email-toggle { min-height: 48px; font-size: 15px; }

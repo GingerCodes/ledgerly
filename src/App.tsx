@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Logo } from './components/Logo'
 import { AppRoutes } from './app/AppRoutes'
 import { AppShell } from './app/AppShell'
@@ -7,6 +7,7 @@ import { useAuthSession } from './app/useAuthSession'
 import { useFinanceDatabase } from './app/useFinanceDatabase'
 import { supabaseSetup } from './data/supabase-client'
 import { isStandalone } from './lib/install'
+import { applyTheme, loadTheme } from './lib/theme'
 import { displayName, fullName, yearViewOf } from './lib/user'
 import { AuthScreen } from './features/auth/AuthScreen'
 import './App.css'
@@ -20,6 +21,9 @@ function App() {
   const { client: supabase } = supabaseSetup
   const [standalone] = useState(isStandalone)
   const auth = useAuthSession(supabase)
+  const userId = auth.session?.user.id
+  // Signing in or out can change the default palette (older accounts keep Classic), so apply it again.
+  useEffect(() => { applyTheme(loadTheme()) }, [userId])
   const { database, loadingError } = useFinanceDatabase(supabase, auth.session?.user.id)
 
   if (!auth.authReady) return <Splash title="Ledgerly"><p>Connecting…</p><div className="loading-bar" aria-hidden="true" /></Splash>
