@@ -6,7 +6,7 @@ Read this file first when continuing Ledgerly work in a new assistant session. I
 
 ## Product and data rules
 
-Ledgerly is a private personal-finance PWA for INR-only expense tracking, savings accounts, fixed deposits, cash/bank transfers, nested categories, reconciliations, reports, and encrypted backups. Daily expenses use the `CASH` account. Transfers are excluded from expense and income totals. Account numbers are tracked as references, never as banking credentials.
+Ledgerly is a private personal-finance PWA for INR-only expense tracking, savings accounts, fixed deposits, cash/bank transfers, nested categories, reconciliations, reports, and encrypted backups. Expenses default to the `CASH` account but can be paid from any account (the old CASH-only check was dropped by migration `20261128120000_expense_any_account.sql`). Transfers are excluded from expense and income totals. Account numbers are tracked as references, never as banking credentials.
 
 The user selected Supabase as the cloud source of truth. Do not create test transactions or add financial data to the real account without permission. Never test account deletion on the user's real account; use a throwaway email.
 
@@ -27,6 +27,7 @@ The user selected Supabase as the cloud source of truth. Do not create test tran
   2. `20261127130000_fd_funding_account.sql` — `funding_account_id` on fixed deposits and an updated `finance_apply_changes`.
   3. `20261127140000_delete_account.sql` — `finance_delete_account()` (security definer; deletes the caller's `auth.users` row, which cascades to all finance tables).
   4. `20261128100000_require_current_client.sql` — `finance_apply_changes` refuses saves whose `changes.client_api_version` is below 2 (`FINANCE_OUTDATED`); the app sends `CLIENT_API_VERSION` with every save. **Deploy the app before running it.** When a migration adds a column, bump `CLIENT_API_VERSION` and the SQL check so stale cached copies cannot null out the new column.
+  6. `20261128120000_expense_any_account.sql` — drops the Postgres check that forced expenses onto CASH. No app version bump needed; run it before or after deploy, but until it runs, saving an expense from a savings account fails.
   5. `20261128110000_fd_closed_date.sql` — `closed_date` on fixed deposits; function now requires `client_api_version >= 3`. Deploy the app first.
 - `finance_apply_changes` sends incremental row changes in a transaction and checks a per-user revision to reject stale writes. If a function gains a column, its recordset list in the SQL must be updated too, or the field is silently dropped.
 - The Supabase project must expose the `public` schema (Settings → API). If PostgREST reports `PGRST002`, verify that and run `NOTIFY pgrst, 'reload schema';`.
