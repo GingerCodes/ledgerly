@@ -68,11 +68,15 @@ describe('palette', () => {
     expect(document.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe('#0f1613')
   })
 
-  it('swaps the browser icons with the palette', () => {
+  it('swaps the browser icons with the palette and with light or dark mode', () => {
     const href = (selector: string) => document.querySelector(selector)?.getAttribute('href')
     savePalette('aurora')
-    expect(href('link[rel="icon"][type="image/svg+xml"]')).toBe('/favicon-aurora.svg')
-    expect(href('link[rel="apple-touch-icon"]')).toBe('/apple-touch-icon-aurora.png')
+    saveTheme('light')
+    expect(href('link[rel="icon"][type="image/svg+xml"]')).toBe('/favicon-aurora-light.svg')
+    expect(href('link[rel="apple-touch-icon"]')).toBe('/apple-touch-icon-aurora-light.png')
+    saveTheme('dark')
+    expect(href('link[rel="icon"][type="image/svg+xml"]')).toBe('/favicon-aurora-dark.svg')
+    expect(href('link[rel="apple-touch-icon"]')).toBe('/apple-touch-icon-aurora-dark.png')
     savePalette('classic')
     expect(href('link[rel="icon"][type="image/svg+xml"]')).toBe('/favicon.svg')
     expect(href('link[rel="apple-touch-icon"]')).toBe('/apple-touch-icon.png')

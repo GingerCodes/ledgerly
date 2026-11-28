@@ -27,7 +27,8 @@
   var colors = { classic: ['#245c48', '#0f1613'], aurora: ['#4f46e5', '#0a0919'] }
   if (meta) meta.setAttribute('content', colors[palette][dark ? 1 : 0])
   if (palette === 'aurora') {
-    var icons = { 'link[rel="icon"][type="image/svg+xml"]': '/favicon-aurora.svg', 'link[rel="icon"][sizes="32x32"]': '/favicon-aurora-32.png', 'link[rel="icon"][sizes="16x16"]': '/favicon-aurora-16.png', 'link[rel="apple-touch-icon"]': '/apple-touch-icon-aurora.png' }
+    var mode = dark ? 'dark' : 'light'
+    var icons = { 'link[rel="icon"][type="image/svg+xml"]': '/favicon-aurora-' + mode + '.svg', 'link[rel="icon"][sizes="32x32"]': '/favicon-aurora-' + mode + '-32.png', 'link[rel="icon"][sizes="16x16"]': '/favicon-aurora-' + mode + '-16.png', 'link[rel="apple-touch-icon"]': '/apple-touch-icon-aurora-' + mode + '.png' }
     for (var selector in icons) { var link = document.querySelector(selector); if (link) link.setAttribute('href', icons[selector]) }
   }
 })()

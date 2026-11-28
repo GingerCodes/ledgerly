@@ -85,17 +85,20 @@ export const loadPalette = (): Palette => parsePalette(read(PALETTE_KEY)) ?? def
 
 const systemQuery = () => (typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null)
 
-const BROWSER_ICONS: Record<Palette, Record<string, string>> = {
-  classic: { 'link[rel="icon"][type="image/svg+xml"]': '/favicon.svg', 'link[rel="icon"][sizes="32x32"]': '/favicon-32.png', 'link[rel="icon"][sizes="16x16"]': '/favicon-16.png', 'link[rel="apple-touch-icon"]': '/apple-touch-icon.png' },
-  aurora: { 'link[rel="icon"][type="image/svg+xml"]': '/favicon-aurora.svg', 'link[rel="icon"][sizes="32x32"]': '/favicon-aurora-32.png', 'link[rel="icon"][sizes="16x16"]': '/favicon-aurora-16.png', 'link[rel="apple-touch-icon"]': '/apple-touch-icon-aurora.png' },
-}
+const CLASSIC_ICONS = { svg: '/favicon.svg', png32: '/favicon-32.png', png16: '/favicon-16.png', apple: '/apple-touch-icon.png' }
+const aurora = (mode: 'light' | 'dark') => ({ svg: `/favicon-aurora-${mode}.svg`, png32: `/favicon-aurora-${mode}-32.png`, png16: `/favicon-aurora-${mode}-16.png`, apple: `/apple-touch-icon-aurora-${mode}.png` })
+const iconFiles = (palette: Palette, mode: 'light' | 'dark') => (palette === 'aurora' ? aurora(mode) : CLASSIC_ICONS)
 
 export function applyTheme(theme: Theme, palette: Palette = loadPalette()): void {
   const mode = resolveTheme(theme, systemQuery()?.matches ?? false)
   document.documentElement.dataset.theme = mode
   document.documentElement.dataset.palette = palette
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', BROWSER_COLOR[palette][mode])
-  for (const [selector, href] of Object.entries(BROWSER_ICONS[palette])) document.querySelector(selector)?.setAttribute('href', href)
+  const icons = iconFiles(palette, mode)
+  document.querySelector('link[rel="icon"][type="image/svg+xml"]')?.setAttribute('href', icons.svg)
+  document.querySelector('link[rel="icon"][sizes="32x32"]')?.setAttribute('href', icons.png32)
+  document.querySelector('link[rel="icon"][sizes="16x16"]')?.setAttribute('href', icons.png16)
+  document.querySelector('link[rel="apple-touch-icon"]')?.setAttribute('href', icons.apple)
 }
 
 /** Briefly lets colours transition, so changing the theme fades instead of snapping. */
