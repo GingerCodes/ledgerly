@@ -949,3 +949,42 @@ button.auth-switch, a.auth-switch { display: inline-flex; align-items: center; j
 .upcoming-panel .balance-row { min-height: 44px; }
 .upcoming-panel .upcoming-more { margin-top: 4px; }
 .upcoming-panel .saving-row .balance-name b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Add / edit transaction: amount first, one-tap chips, shown as a bottom sheet on phones. */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.app-shell .txn-sheet { width: min(520px, 100%); }
+.app-shell .txn-form { display: flex; flex-direction: column; max-height: calc(100dvh - 48px); padding: 0; overflow: hidden; }
+.txn-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px 6px; }
+.app-shell .txn-head h2 { font-size: 18px; }
+.txn-body { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 18px; padding: 8px 20px 18px; overflow-y: auto; overscroll-behavior: contain; }
+.txn-field { display: grid; align-content: start; gap: 8px; color: var(--tx-596a60); font-size: 13px; font-weight: 600; }
+.app-shell .txn-field input, .app-shell .txn-field select, .app-shell .txn-field textarea, .app-shell .txn-pair select { width: 100%; min-height: 46px; padding: 8px 12px; border: 1px solid var(--ln-66766b); border-radius: 10px; outline: 0; color: var(--tx-293a30); background: var(--bg-ffffff); font-size: 16px; font-weight: 400; }
+.app-shell .txn-field textarea { resize: vertical; }
+.app-shell .txn-field input:focus, .app-shell .txn-field select:focus, .app-shell .txn-field textarea:focus, .app-shell .txn-pair select:focus, .amount-field:focus-within { border-color: var(--ln-91b79d); box-shadow: 0 0 0 3px rgba(88, 147, 104, .15); }
+.txn-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.txn-pair label { display: grid; gap: 8px; color: var(--tx-596a60); font-size: 13px; font-weight: 600; }
+.app-shell .txn-form .segmented button { min-height: 42px; font-size: 15px; }
+.amount-field { display: flex; align-items: center; gap: 8px; padding: 4px 16px; border: 1px solid var(--ln-66766b); border-radius: 14px; background: var(--bg-ffffff); }
+.amount-prefix { color: var(--tx-596a60); font-family: Manrope, sans-serif; font-size: 30px; font-weight: 700; }
+.app-shell .amount-field input { flex: 1; width: 100%; min-width: 0; min-height: 58px; padding: 0; border: 0; border-radius: 0; box-shadow: none; outline: 0; color: var(--tx-293a30); background: transparent; font-family: Manrope, sans-serif; font-size: 34px; font-weight: 700; letter-spacing: -.5px; }
+.app-shell .amount-field input::placeholder { color: var(--tx-a5afa8); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { min-height: 42px; max-width: 100%; padding: 0 16px; border: 1px solid var(--ln-66766b); border-radius: 999px; color: var(--tx-293a30); background: var(--bg-ffffff); font-size: 14px; font-weight: 600; cursor: pointer; transition: background var(--dur-fast, .14s), color var(--dur-fast, .14s), border-color var(--dur-fast, .14s), transform var(--dur-fast, .14s); }
+.chip:not(.selected):hover { border-color: var(--ln-91b79d); background: var(--bg-eaf4ed); }
+.chip:active { transform: scale(.96); }
+.chip:focus-visible { outline: 2px solid var(--ln-91b79d); outline-offset: 2px; }
+.chip.selected { border-color: transparent; color: var(--tx-ffffff); background: var(--gradient-primary); box-shadow: var(--glow); }
+.chip-more { border-style: dashed; color: var(--tx-428061); }
+.txn-note-link { justify-self: start; min-height: 40px; font-size: 14px; }
+.txn-footer { display: flex; flex-wrap: wrap; gap: 10px; padding: 12px 20px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid var(--ln-e2e9e3); background: var(--bg-ffffff); }
+.app-shell .txn-footer .button { min-height: 48px; flex: 1 1 140px; font-size: 15px; }
+.app-shell .txn-footer .button-primary { flex-grow: 1.4; }
+.txn-backdrop { overscroll-behavior: contain; grid-template-columns: minmax(0, 1fr); justify-items: center; }
+
+@media (max-width: 760px) {
+  .app-shell .txn-backdrop { align-items: end; padding: 0; }
+  .app-shell .txn-sheet { width: 100%; min-width: 0; margin: 0; }
+  .app-shell .txn-form { max-height: 92dvh; border-radius: 20px 20px 0 0; }
+  .txn-head, .txn-body, .txn-footer { padding-right: 16px; padding-left: 16px; }
+  .txn-pair { grid-template-columns: 1fr; }
+}

@@ -24,7 +24,7 @@ describe('transaction search', () => {
     render(
       <MemoryRouter>
         <FinanceProvider database={database}>
-          <TransactionsPage period={makePeriod('calendar', 2026)} onYearChange={() => undefined} transactionForm={undefined} onOpenForm={() => undefined} onCloseForm={() => undefined} onSave={async () => undefined} />
+          <TransactionsPage period={makePeriod('calendar', 2026)} onYearChange={() => undefined} onOpenForm={() => undefined} />
         </FinanceProvider>
       </MemoryRouter>,
     )

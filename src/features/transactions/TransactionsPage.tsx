@@ -1,29 +1,23 @@
 import { useRef, useState } from 'react'
 import { Download, Plus, Search, X } from 'lucide-react'
-import { type Transaction, type TransactionInput } from '../../domain/models'
+import { type Transaction } from '../../domain/models'
 import { useFinance, useFinanceQuery } from '../../app/finance-context'
 import { makePeriod, periodYearOptions, type Period } from '../../lib/period'
 import { downloadFile } from '../../lib/format'
 import { exportTransactionsCsv } from '../../data/transactions-csv'
 import { EmptyState } from '../../components/EmptyState'
 import { TransactionTable } from '../../components/TransactionTable'
-import { TransactionForm } from './TransactionForm'
 
-export function TransactionsPage({ period, onYearChange, transactionForm, onOpenForm, onCloseForm, onSave }: {
+export function TransactionsPage({ period, onYearChange, onOpenForm }: {
   period: Period
   onYearChange: (year: number) => void
-  /** undefined = form closed, null = new transaction, otherwise the transaction being edited. */
-  transactionForm: Transaction | null | undefined
+  /** null = new transaction, otherwise the transaction to edit. The form itself is the dialog rendered by the app shell. */
   onOpenForm: (transaction: Transaction | null) => void
-  onCloseForm: () => void
-  onSave: (value: TransactionInput, reason: string, keepOpen: boolean) => Promise<void>
 }) {
   const { database, accounts, categories, showSuccess, showError } = useFinance()
   const [transactionSearch, setTransactionSearch] = useState('')
   const searchRef = useRef<HTMLInputElement>(null)
   const clearSearch = () => { setTransactionSearch(''); searchRef.current?.focus() }
-  // Suggestions come from recent history across all periods, not just the rows on screen (a new financial year starts empty).
-  const suggestions = useFinanceQuery((db) => db.getRecentTransactions(500), [])
   const transactions = useFinanceQuery((db) => db.getTransactions(period.startDate, period.endDate, transactionSearch), [period.startDate, period.endDate, transactionSearch])
 
   function exportYearCsv() {
@@ -43,7 +37,6 @@ export function TransactionsPage({ period, onYearChange, transactionForm, onOpen
                 <div><p className="eyebrow">DAILY MONEY MOVEMENT</p><h1>Transactions</h1><p className="page-subtitle">Track spending, income, and transfers between accounts.</p></div>
                 <button className="button button-primary desktop-only" onClick={() => onOpenForm(null)}><Plus size={16} /> Add transaction</button>
               </section>
-              {transactionForm !== undefined && <TransactionForm key={transactionForm?.id ?? 'new-transaction'} transaction={transactionForm} accounts={accounts} categories={categories} transactions={suggestions} onCancel={() => onCloseForm()} onSave={onSave} />}
               <section className="panel table-panel">
                 <div className="list-toolbar">
                   <div className="list-title"><h2>All transactions</h2><span className="count-pill">{transactions.length}</span></div>
